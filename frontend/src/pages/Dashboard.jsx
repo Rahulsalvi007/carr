@@ -61,125 +61,118 @@ export default function Dashboard({ setActiveTab }) {
   const vehicleBreakdown = data?.vehicle_breakdown || [];
   const powerData = data?.power_distribution || [];
 
-  const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6'];
+  const COLORS = ['#ffffff', '#d4d4d8', '#a1a1aa', '#71717a', '#52525b'];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-200">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800/60 pb-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white m-0">Surveillance Overview</h1>
-          <p className="text-sm text-slate-400 mt-1">Real-time computer vision traffic monitoring & road-safety violations</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white m-0">Surveillance Overview</h1>
+          <p className="text-xs text-zinc-400 mt-1">Real-time roadway analytics, vehicle tracking, and infraction monitoring</p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={fetchDashboardData}
             disabled={isLoading}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-800 transition-colors"
           >
-            <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />
+            <RefreshCw size={13} className={isLoading ? "animate-spin" : ""} />
             <span>Refresh</span>
           </button>
 
           <button
             onClick={() => setActiveTab('live')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-lg shadow-blue-500/25 transition-all"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white hover:bg-zinc-200 text-black text-xs font-semibold shadow-sm transition-colors"
           >
-            <Radio size={15} className="animate-pulse text-emerald-300" />
-            <span>Open Live Surveillance</span>
+            <Radio size={14} className="text-black" />
+            <span>Live Surveillance</span>
           </button>
         </div>
       </div>
 
-      {/* Top 7 Stat Cards as requested in section 10 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3.5">
+      {/* Top Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
         <StatCard
           title="Total Vehicles"
           value={summary.total_vehicles || 0}
           icon={Car}
-          color="blue"
           subtext="Tracked objects"
         />
         <StatCard
           title="Cars"
           value={summary.cars || 0}
           icon={Car}
-          color="cyan"
           subtext="Automobiles"
         />
         <StatCard
           title="Bikes / Cycles"
           value={summary.bikes || 0}
           icon={Bike}
-          color="emerald"
           subtext="Two-wheelers"
         />
         <StatCard
           title="Electric (EV)"
           value={summary.evs || 0}
           icon={Zap}
-          color="purple"
-          subtext="Green-plate verified"
+          subtext="Verified EV"
         />
         <StatCard
           title="Helmet Viols"
           value={summary.helmet_violations || 0}
           icon={ShieldAlert}
-          color="rose"
-          badge="Safety alert"
+          badge="Safety"
         />
         <StatCard
           title="Missing Plates"
           value={summary.missing_plate_violations || 0}
           icon={EyeOff}
-          color="amber"
-          subtext="No plate localized"
+          subtext="Unidentified"
         />
         <StatCard
           title="Total Violations"
           value={summary.total_violations || 0}
           icon={AlertTriangle}
-          color="rose"
-          badge="Action needed"
+          badge="Attention"
         />
       </div>
 
-      {/* Main Charts & Live Status Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Hourly Traffic Trend (Area Chart) */}
-        <div className="lg:col-span-2 cyber-card rounded-2xl p-5 sm:p-6">
+        <div className="lg:col-span-2 bg-zinc-900/60 border border-zinc-800 rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-bold text-base text-white">Traffic Volume by Hour</h3>
-              <p className="text-xs text-slate-400">Total detected vehicles across 24 hours</p>
+              <h3 className="font-semibold text-sm text-white">Traffic Volume by Hour</h3>
+              <p className="text-[11px] text-zinc-400">Total detected vehicles across 24 hours</p>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-              <TrendingUp size={14} />
-              <span>Real-time aggregation</span>
+            <div className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-300 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700/60">
+              <TrendingUp size={12} className="text-zinc-400" />
+              <span>Real-time</span>
             </div>
           </div>
 
-          <div className="h-64 w-full">
+          <div className="h-60 w-full">
             {hourly.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={hourly} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#ffffff" stopOpacity={0.25}/>
+                      <stop offset="95%" stopColor="#ffffff" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="hour" stroke="#64748B" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#64748B" fontSize={11} tickLine={false} />
+                  <XAxis dataKey="hour" stroke="#71717a" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#71717a" fontSize={11} tickLine={false} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '8px', color: '#F8FAFC' }}
+                    contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '8px', color: '#f4f4f5', fontSize: '12px' }}
                   />
-                  <Area type="monotone" dataKey="count" stroke="#3B82F6" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCount)" />
+                  <Area type="monotone" dataKey="count" stroke="#ffffff" strokeWidth={2} fillOpacity={1} fill="url(#colorCount)" />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex items-center justify-center text-slate-500 text-xs">
+              <div className="h-full flex items-center justify-center text-zinc-500 text-xs">
                 No hourly records found. Launch live camera or upload media to populate statistics.
               </div>
             )}
@@ -187,13 +180,13 @@ export default function Dashboard({ setActiveTab }) {
         </div>
 
         {/* Vehicle Composition (Donut Chart) */}
-        <div className="cyber-card rounded-2xl p-5 sm:p-6 flex flex-col justify-between">
+        <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 flex flex-col justify-between">
           <div>
-            <h3 className="font-bold text-base text-white">Vehicle Class Breakdown</h3>
-            <p className="text-xs text-slate-400">Classified vehicle types</p>
+            <h3 className="font-semibold text-sm text-white">Vehicle Class Breakdown</h3>
+            <p className="text-[11px] text-zinc-400">Classified vehicle types</p>
           </div>
 
-          <div className="h-48 w-full my-2">
+          <div className="h-44 w-full my-2">
             {vehicleBreakdown.some(v => v.value > 0) ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -201,9 +194,9 @@ export default function Dashboard({ setActiveTab }) {
                     data={vehicleBreakdown}
                     cx="50%"
                     cy="50%"
-                    innerRadius={50}
-                    outerRadius={75}
-                    paddingAngle={4}
+                    innerRadius={48}
+                    outerRadius={70}
+                    paddingAngle={3}
                     dataKey="value"
                   >
                     {vehicleBreakdown.map((entry, index) => (
@@ -211,23 +204,23 @@ export default function Dashboard({ setActiveTab }) {
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '8px' }}
+                    contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '8px', fontSize: '12px' }}
                   />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex items-center justify-center text-slate-500 text-xs text-center px-4">
+              <div className="h-full flex items-center justify-center text-zinc-500 text-xs text-center px-4">
                 Vehicle distribution chart will appear once objects are detected.
               </div>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="grid grid-cols-2 gap-2 text-[11px]">
             {vehicleBreakdown.map((item, idx) => (
-              <div key={item.name} className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
-                <span className="text-slate-400">{item.name}:</span>
-                <span className="font-semibold text-white">{item.value}</span>
+              <div key={item.name} className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
+                <span className="text-zinc-400">{item.name}:</span>
+                <span className="font-semibold text-white font-mono">{item.value}</span>
               </div>
             ))}
           </div>
@@ -235,99 +228,99 @@ export default function Dashboard({ setActiveTab }) {
       </div>
 
       {/* Bottom Section: Helmet Compliance + Recent Violations */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Helmet Compliance Gauge Card */}
-        <div className="cyber-card rounded-2xl p-5 sm:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-base text-white">Helmet Compliance</h3>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-sm text-white">Helmet Compliance</h3>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
               Safety Index
             </span>
           </div>
 
-          <div className="flex flex-col items-center justify-center py-4 space-y-3">
-            <div className="relative w-36 h-36 flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center py-3 space-y-3">
+            <div className="relative w-32 h-32 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90">
                 <circle
-                  cx="72"
-                  cy="72"
-                  r="56"
-                  stroke="#1E293B"
-                  strokeWidth="12"
+                  cx="64"
+                  cy="64"
+                  r="50"
+                  stroke="#27272a"
+                  strokeWidth="10"
                   fill="transparent"
                 />
                 <circle
-                  cx="72"
-                  cy="72"
-                  r="56"
-                  stroke="#10B981"
-                  strokeWidth="12"
-                  strokeDasharray={351.8}
-                  strokeDashoffset={351.8 - (351.8 * (summary.helmet_compliance_rate || 100)) / 100}
+                  cx="64"
+                  cy="64"
+                  r="50"
+                  stroke="#ffffff"
+                  strokeWidth="10"
+                  strokeDasharray={314.15}
+                  strokeDashoffset={314.15 - (314.15 * (summary.helmet_compliance_rate || 100)) / 100}
                   strokeLinecap="round"
                   fill="transparent"
-                  className="transition-all duration-1000 ease-out"
+                  className="transition-all duration-700 ease-out"
                 />
               </svg>
               <div className="absolute flex flex-col items-center">
-                <span className="text-3xl font-black text-white">{summary.helmet_compliance_rate || 100}%</span>
-                <span className="text-[10px] uppercase font-semibold text-slate-400">Compliant</span>
+                <span className="text-2xl font-bold font-mono text-white">{summary.helmet_compliance_rate || 100}%</span>
+                <span className="text-[9px] uppercase font-semibold text-zinc-400">Compliant</span>
               </div>
             </div>
 
-            <p className="text-xs text-slate-400 text-center max-w-xs">
+            <p className="text-[11px] text-zinc-400 text-center max-w-xs">
               Based on rider head region analysis across all tracked two-wheeler detections.
             </p>
           </div>
         </div>
 
         {/* Recent Violations Feed */}
-        <div className="lg:col-span-2 cyber-card rounded-2xl p-5 sm:p-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="lg:col-span-2 bg-zinc-900/60 border border-zinc-800 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <h3 className="font-bold text-base text-white">Recent Road Violations</h3>
-              <p className="text-xs text-slate-400">Automatic safety infractions logged by rule engine</p>
+              <h3 className="font-semibold text-sm text-white">Recent Road Violations</h3>
+              <p className="text-[11px] text-zinc-400">Automatic safety infractions logged by rule engine</p>
             </div>
             <button
               onClick={() => setActiveTab('violations')}
-              className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 font-semibold"
+              className="flex items-center gap-1 text-xs text-zinc-300 hover:text-white font-medium"
             >
               <span>View All</span>
-              <ArrowRight size={14} />
+              <ArrowRight size={13} />
             </button>
           </div>
 
           {recentViolations.length > 0 ? (
-            <div className="divide-y divide-slate-800">
+            <div className="divide-y divide-zinc-800/80">
               {recentViolations.map((v) => (
                 <div
                   key={v.id}
                   onClick={() => setSelectedViolation(v)}
-                  className="py-3 flex items-center justify-between hover:bg-slate-800/40 px-3 rounded-xl cursor-pointer transition-colors"
+                  className="py-2.5 flex items-center justify-between hover:bg-zinc-800/40 px-2 rounded-lg cursor-pointer transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-rose-500/20 text-rose-400">
-                      <AlertTriangle size={18} />
+                    <div className="p-1.5 rounded-lg bg-zinc-800 text-zinc-300 border border-zinc-700/50">
+                      <AlertTriangle size={15} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm text-white">{v.violation_type.replace('_', ' ')}</span>
-                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                        <span className="font-medium text-xs text-white">{v.violation_type.replace('_', ' ')}</span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/60">
                           {v.vehicle_type}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        Plate: <span className="font-mono text-slate-300">{v.plate_number || 'N/A'}</span> • {Math.round(v.confidence * 100)}% Confidence
+                      <p className="text-[11px] text-zinc-400 mt-0.5">
+                        Plate: <span className="font-mono text-zinc-200 font-semibold">{v.plate_number || 'N/A'}</span> • {Math.round(v.confidence * 100)}% Conf
                       </p>
                     </div>
                   </div>
 
                   <div className="text-right flex flex-col items-end gap-1">
-                    <span className="text-[11px] text-slate-400 font-mono">
+                    <span className="text-[10px] text-zinc-400 font-mono">
                       {v.timestamp ? new Date(v.timestamp).toLocaleTimeString() : ''}
                     </span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${
-                      v.status === 'ACTIVE' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                    <span className={`text-[10px] px-2 py-0.2 rounded font-mono font-medium border ${
+                      v.status === 'ACTIVE' ? 'bg-red-950/40 text-red-400 border-red-800/40' : 'bg-zinc-800 text-zinc-300 border-zinc-700'
                     }`}>
                       {v.status}
                     </span>
@@ -336,8 +329,8 @@ export default function Dashboard({ setActiveTab }) {
               ))}
             </div>
           ) : (
-            <div className="py-12 text-center text-slate-500 text-xs flex flex-col items-center justify-center">
-              <ShieldAlert size={32} className="text-slate-600 mb-2" />
+            <div className="py-10 text-center text-zinc-500 text-xs flex flex-col items-center justify-center">
+              <ShieldAlert size={28} className="text-zinc-600 mb-1.5" />
               <span>No violations recorded yet. Connect a camera feed to begin automated monitoring.</span>
             </div>
           )}

@@ -46,8 +46,8 @@ export default function Vehicles() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white m-0">Tracked Vehicles Registry</h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-white m-0">Tracked Vehicles Registry</h1>
+          <p className="text-xs text-zinc-400 mt-1">
             Database of uniquely tracked vehicles with license plate history and power classification
           </p>
         </div>
@@ -55,32 +55,32 @@ export default function Vehicles() {
         <button
           onClick={fetchVehicles}
           disabled={isLoading}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition-colors"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white text-xs font-medium border border-zinc-800 transition-colors"
         >
-          <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />
+          <RefreshCw size={13} className={isLoading ? "animate-spin" : ""} />
           <span>Refresh Database</span>
         </button>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="cyber-card p-3.5 rounded-2xl flex flex-col sm:flex-row items-center gap-3">
+      <div className="pro-card p-3 rounded-xl flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
           <input
             type="text"
             placeholder="Search by Plate Number, Track ID, or Vehicle Type..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter size={16} className="text-slate-500 hidden sm:block" />
+          <Filter size={15} className="text-zinc-500 hidden sm:block" />
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 w-full sm:w-auto"
+            className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-300 focus:outline-none focus:border-zinc-700 w-full sm:w-auto"
           >
             <option value="ALL">All Categories</option>
             <option value="CAR">Cars Only</option>
@@ -91,10 +91,10 @@ export default function Vehicles() {
       </div>
 
       {/* Vehicles Table */}
-      <div className="cyber-card rounded-2xl overflow-hidden shadow-2xl">
+      <div className="pro-card rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950/80 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
+            <thead className="bg-zinc-950 text-zinc-400 uppercase tracking-wider font-semibold border-b border-zinc-800 text-[11px]">
               <tr>
                 <th className="px-5 py-3.5">Track ID</th>
                 <th className="px-5 py-3.5">Vehicle Type</th>
@@ -106,75 +106,75 @@ export default function Vehicles() {
                 <th className="px-5 py-3.5">Violations</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80 text-slate-300">
+            <tbody className="divide-y divide-zinc-800/70 text-zinc-300">
               {filteredVehicles.length > 0 ? (
                 filteredVehicles.map((v) => (
-                  <tr key={v.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="px-5 py-4 font-mono font-bold text-blue-400">
+                  <tr key={v.id} className="hover:bg-zinc-900/40 transition-colors">
+                    <td className="px-5 py-3.5 font-mono font-semibold text-white">
                       #{v.track_id || v.id}
                     </td>
 
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
                         {v.vehicle_type.toLowerCase().includes('bike') || v.vehicle_type.toLowerCase().includes('motorcycle') ? (
-                          <Bike size={16} className="text-emerald-400" />
+                          <Bike size={15} className="text-zinc-300" />
                         ) : (
-                          <Car size={16} className="text-blue-400" />
+                          <Car size={15} className="text-zinc-300" />
                         )}
-                        <span className="font-semibold text-white">{v.vehicle_type}</span>
+                        <span className="font-medium text-white">{v.vehicle_type}</span>
                       </div>
                     </td>
 
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3.5">
                       {v.plate_number ? (
-                        <span className="font-mono px-2 py-0.5 rounded bg-slate-950 text-white font-bold border border-slate-700">
+                        <span className="font-mono px-2 py-0.5 rounded bg-zinc-950 text-white font-semibold border border-zinc-800">
                           {v.plate_number}
                         </span>
                       ) : (
-                        <span className="text-slate-500 italic">Not detected</span>
+                        <span className="text-zinc-500 italic text-[11px]">Not detected</span>
                       )}
                     </td>
 
-                    <td className="px-5 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
+                    <td className="px-5 py-3.5">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${
                         v.power_type === 'Electric'
-                          ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
+                          ? 'bg-zinc-900 text-emerald-400 border-zinc-800'
                           : v.power_type === 'Conventional/Fuel'
-                          ? 'bg-slate-800 text-slate-300 border-slate-700'
-                          : 'bg-slate-800/50 text-slate-500 border-slate-800'
+                          ? 'bg-zinc-900 text-zinc-300 border-zinc-800'
+                          : 'bg-zinc-900/50 text-zinc-500 border-zinc-800'
                       }`}>
-                        {v.power_type === 'Electric' && <Zap size={12} />}
+                        {v.power_type === 'Electric' && <Zap size={11} />}
                         {v.power_type}
                       </span>
                     </td>
 
-                    <td className="px-5 py-4 font-mono font-semibold">
+                    <td className="px-5 py-3.5 font-mono text-zinc-400">
                       {Math.round(v.confidence * 100)}%
                     </td>
 
-                    <td className="px-5 py-4 text-slate-400 font-mono text-[11px]">
+                    <td className="px-5 py-3.5 text-zinc-500 font-mono text-[11px]">
                       {v.first_seen ? new Date(v.first_seen).toLocaleTimeString() : 'N/A'}
                     </td>
 
-                    <td className="px-5 py-4 text-slate-400 font-mono text-[11px]">
+                    <td className="px-5 py-3.5 text-zinc-500 font-mono text-[11px]">
                       {v.last_seen ? new Date(v.last_seen).toLocaleTimeString() : 'N/A'}
                     </td>
 
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3.5">
                       {v.violations_count > 0 ? (
-                        <span className="inline-flex items-center gap-1 text-rose-400 font-bold bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
-                          <AlertTriangle size={12} />
+                        <span className="inline-flex items-center gap-1 text-red-400 font-semibold bg-red-950/20 px-2 py-0.5 rounded border border-red-900/40">
+                          <AlertTriangle size={11} />
                           <span>{v.violations_count}</span>
                         </span>
                       ) : (
-                        <span className="text-emerald-400 text-[11px]">Clean</span>
+                        <span className="text-zinc-500 text-[11px]">Clean</span>
                       )}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-5 py-12 text-center text-slate-500">
+                  <td colSpan={8} className="px-5 py-12 text-center text-zinc-500">
                     No vehicles found matching the filter criteria.
                   </td>
                 </tr>

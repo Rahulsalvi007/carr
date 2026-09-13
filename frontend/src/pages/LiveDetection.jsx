@@ -663,61 +663,63 @@ export default function LiveDetection() {
   };
 
   return (
-    <div className="space-y-5 animate-in fade-in duration-300">
+    <div className="space-y-4 animate-in fade-in duration-200">
       {/* Top Source Mode Switcher Bar */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-slate-900/90 p-4 rounded-3xl border border-slate-800 backdrop-blur-xl shadow-2xl">
-        <div className="flex items-center gap-3.5">
-          <div className="p-3 rounded-2xl bg-gradient-to-tr from-cyan-500/20 via-blue-500/20 to-indigo-500/20 text-cyan-400 border border-cyan-500/40 shadow-lg shadow-cyan-500/10">
-            <Radio size={22} className={isStreaming ? "animate-pulse text-emerald-400" : ""} />
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-zinc-900/60 p-3 rounded-xl border border-zinc-800">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700/60 text-zinc-200 flex items-center justify-center">
+            <Radio size={16} className={isStreaming ? "text-white" : "text-zinc-500"} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-black text-white m-0 tracking-tight">AI Traffic Command Center</h2>
-              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-[10px] font-mono font-bold">
-                <Sparkles size={10} /> YOLOv8 + OCR + ByteTrack
+              <h2 className="text-sm font-bold text-white m-0 tracking-tight">Live Surveillance Feed</h2>
+              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.2 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 text-[10px] font-mono">
+                YOLOv8 + OCR
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">Real-time wireless video analytics, helmet infraction detection & plate recognition</p>
+            <p className="text-[11px] text-zinc-400 mt-0.5">Automated detection of vehicles, license plates, and road infractions</p>
           </div>
         </div>
 
         {/* Source Switch Buttons & Action Bar */}
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => switchMode('phone')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
-              streamMode === 'phone'
-                ? 'bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white shadow-xl shadow-cyan-500/25 border border-cyan-400/50 scale-[1.02]'
-                : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800/80 hover:border-slate-700'
-            }`}
-          >
-            <Smartphone size={15} className={streamMode === 'phone' ? 'animate-bounce' : ''} />
-            <span>📱 Mobile Phone Cam</span>
-          </button>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <div className="bg-zinc-950 p-0.5 rounded-lg border border-zinc-800 flex items-center gap-1">
+            <button
+              onClick={() => switchMode('phone')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                streamMode === 'phone'
+                  ? 'bg-white text-black font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <Smartphone size={13} />
+              <span>Phone Cam</span>
+            </button>
 
-          <button
-            onClick={() => switchMode('webcam')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
-              streamMode === 'webcam'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/25 border border-blue-400/50 scale-[1.02]'
-                : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800/80 hover:border-slate-700'
-            }`}
-          >
-            <Camera size={15} />
-            <span>💻 Laptop Cam</span>
-          </button>
+            <button
+              onClick={() => switchMode('webcam')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                streamMode === 'webcam'
+                  ? 'bg-white text-black font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <Camera size={13} />
+              <span>Laptop Cam</span>
+            </button>
 
-          <button
-            onClick={() => switchMode('sim')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
-              streamMode === 'sim'
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-xl shadow-purple-500/25 border border-purple-400/50 scale-[1.02]'
-                : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800/80 hover:border-slate-700'
-            }`}
-          >
-            <Radio size={15} />
-            <span>🔄 Simulation</span>
-          </button>
+            <button
+              onClick={() => switchMode('sim')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                streamMode === 'sim'
+                  ? 'bg-white text-black font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <Radio size={13} />
+              <span>Simulation</span>
+            </button>
+          </div>
 
           {/* Camera Device Dropdown for Webcam Mode */}
           {streamMode === 'webcam' && videoDevices.length > 1 && (
@@ -727,7 +729,7 @@ export default function LiveDetection() {
                 setSelectedDeviceId(e.target.value);
                 if (isStreaming) startWebcam(e.target.value);
               }}
-              className="bg-slate-950 text-slate-200 text-xs border border-slate-800 rounded-2xl px-3 py-2 focus:outline-none focus:border-cyan-500 max-w-[170px] truncate"
+              className="bg-zinc-900 text-zinc-200 text-xs border border-zinc-800 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-zinc-500 max-w-[150px] truncate"
               title="Select Video Input Device"
             >
               {videoDevices.map((d, i) => (
@@ -738,19 +740,19 @@ export default function LiveDetection() {
             </select>
           )}
 
-          <div className="h-6 w-px bg-slate-800 mx-1 hidden sm:block" />
+          <div className="h-5 w-px bg-zinc-800 mx-1 hidden sm:block" />
 
           {/* Sound Alert Toggle */}
           <button
             onClick={() => setSoundAlerts(!soundAlerts)}
-            className={`p-2.5 rounded-2xl border text-xs font-medium transition-all ${
+            className={`p-2 rounded-lg border text-xs transition-colors ${
               soundAlerts
-                ? 'bg-slate-950 text-cyan-400 border-cyan-500/40 shadow-sm'
-                : 'bg-slate-950/50 text-slate-600 border-slate-900'
+                ? 'bg-zinc-800 text-zinc-200 border-zinc-700'
+                : 'bg-zinc-950 text-zinc-600 border-zinc-800'
             }`}
             title={soundAlerts ? "Audio Alerts Enabled" : "Muted"}
           >
-            {soundAlerts ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            {soundAlerts ? <Volume2 size={15} /> : <VolumeX size={15} />}
           </button>
 
           {/* Theater / Cinema View Toggle */}
@@ -761,56 +763,56 @@ export default function LiveDetection() {
                 setIsSidePanelOpen(false);
               }
             }}
-            className={`p-2.5 rounded-2xl border text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`p-2 rounded-lg border text-xs font-medium transition-colors flex items-center gap-1.5 ${
               isTheaterMode
-                ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border-cyan-400/50 shadow-lg shadow-cyan-500/20'
-                : 'bg-slate-950 text-slate-400 hover:text-white border-slate-800'
+                ? 'bg-zinc-800 text-white border-zinc-600'
+                : 'bg-zinc-950 text-zinc-400 hover:text-white border-zinc-800'
             }`}
-            title={isTheaterMode ? "Exit Cinema View" : "Expand to Cinema View (Full Width & Height)"}
+            title={isTheaterMode ? "Standard View" : "Cinema View"}
           >
-            <Maximize2 size={15} />
-            <span className="hidden sm:inline">{isTheaterMode ? "Standard" : "Cinema View"}</span>
+            <Maximize2 size={14} />
+            <span className="hidden sm:inline">{isTheaterMode ? "Standard" : "Cinema"}</span>
           </button>
 
-          {/* Side Panel Toggle (Wide Cam View) */}
+          {/* Side Panel Toggle */}
           <button
             onClick={() => setIsSidePanelOpen(!isSidePanelOpen)}
-            className={`p-2.5 rounded-2xl border text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`p-2 rounded-lg border text-xs font-medium transition-colors flex items-center gap-1.5 ${
               !isSidePanelOpen
-                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-lg shadow-cyan-500/10'
-                : 'bg-slate-950 text-slate-400 hover:text-white border-slate-800'
+                ? 'bg-zinc-800 text-white border-zinc-600'
+                : 'bg-zinc-950 text-zinc-400 hover:text-white border-zinc-800'
             }`}
-            title={isSidePanelOpen ? "Expand camera to Full Width" : "Show Side Detection Panel"}
+            title={isSidePanelOpen ? "Expand to Full Width" : "Show Side Panel"}
           >
-            {isSidePanelOpen ? <PanelRightClose size={15} /> : <PanelRightOpen size={15} />}
-            <span className="hidden sm:inline">{isSidePanelOpen ? "Wide View" : "Split View"}</span>
+            {isSidePanelOpen ? <PanelRightClose size={14} /> : <PanelRightOpen size={14} />}
+            <span className="hidden sm:inline">{isSidePanelOpen ? "Wide" : "Split"}</span>
           </button>
 
-          {/* True Fullscreen Button */}
+          {/* Fullscreen Button */}
           <button
             onClick={toggleFullscreen}
-            className="p-2.5 rounded-2xl bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white border border-cyan-400/60 transition-all text-xs font-black flex items-center gap-1.5 shadow-xl shadow-cyan-500/25 active:scale-95"
-            title={isFullscreen ? "Exit Fullscreen (Esc or F)" : "Enter True Laptop Fullscreen (Press F)"}
+            className="px-3 py-1.5 rounded-lg bg-white hover:bg-zinc-200 text-black text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
+            title={isFullscreen ? "Exit Fullscreen (Esc)" : "Laptop Fullscreen (F)"}
           >
-            {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
-            <span className="font-bold">{isFullscreen ? "Exit Full" : "🖥️ Fullscreen (F)"}</span>
+            {isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+            <span>{isFullscreen ? "Exit" : "Fullscreen"}</span>
           </button>
 
           {isStreaming && (
             <button
               onClick={stopStream}
-              className="p-2.5 rounded-2xl bg-rose-600/20 text-rose-400 border border-rose-500/40 hover:bg-rose-600/30 transition-all text-xs font-bold"
-              title="Stop current surveillance stream"
+              className="p-2 rounded-lg bg-red-950/40 text-red-400 border border-red-800/40 hover:bg-red-900/40 transition-colors text-xs"
+              title="Stop surveillance stream"
             >
-              <CameraOff size={16} />
+              <CameraOff size={15} />
             </button>
           )}
         </div>
       </div>
 
-      {/* Main Grid: HUD Video Feed & Real-time Telemetry Panel */}
-      <div className={`grid gap-6 ${isSidePanelOpen && !isFullscreen && !isTheaterMode ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'}`}>
-        {/* Live Surveillance Viewport (Laptop Monitor Display) */}
+      {/* Main Grid: Video Viewport & Real-time Telemetry */}
+      <div className={`grid gap-4 ${isSidePanelOpen && !isFullscreen && !isTheaterMode ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'}`}>
+        {/* Live Surveillance Viewport */}
         <div
           ref={containerRef}
           onMouseMove={handleMouseMove}
@@ -819,15 +821,15 @@ export default function LiveDetection() {
             isFullscreen
               ? 'fixed inset-0 z-[99999] w-screen h-screen bg-black flex items-center justify-center p-0 m-0 border-0 rounded-none overflow-hidden select-none ' + (!showHud ? 'cursor-none' : '')
               : isTheaterMode
-              ? 'col-span-full rounded-3xl bg-slate-950 border border-cyan-500/30 overflow-hidden relative shadow-2xl flex flex-col items-center justify-center min-h-[78vh] transition-all duration-300'
-              : (isSidePanelOpen ? 'lg:col-span-2' : 'col-span-full') + ' rounded-3xl bg-slate-950 border border-slate-800/80 overflow-hidden relative shadow-2xl flex flex-col items-center justify-center min-h-[540px] transition-all duration-300'
+              ? 'col-span-full rounded-xl bg-black border border-zinc-800 overflow-hidden relative shadow-lg flex flex-col items-center justify-center min-h-[75vh] transition-all duration-200'
+              : (isSidePanelOpen ? 'lg:col-span-2' : 'col-span-full') + ' rounded-xl bg-black border border-zinc-800 overflow-hidden relative shadow-lg flex flex-col items-center justify-center min-h-[520px] transition-all duration-200'
           }`}
         >
           {/* Subtle on-screen indicator when entering Fullscreen */}
           {isFullscreen && fsNotification && (
-            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40 bg-slate-950/90 text-cyan-300 border border-cyan-500/40 px-5 py-2.5 rounded-2xl shadow-2xl backdrop-blur-xl text-xs font-bold animate-in fade-in zoom-in-95 pointer-events-none flex items-center gap-2">
-              <Maximize2 size={16} className="text-cyan-400" />
-              <span>🖥️ Laptop Zero-Border Fullscreen Active • Double-click or Esc to exit</span>
+            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 bg-zinc-950/90 text-zinc-200 border border-zinc-800 px-4 py-2 rounded-lg shadow-xl backdrop-blur-md text-xs font-medium animate-in fade-in pointer-events-none flex items-center gap-2">
+              <Maximize2 size={14} className="text-white" />
+              <span>Fullscreen Active • Double-click or Esc to exit</span>
             </div>
           )}
 
@@ -838,79 +840,78 @@ export default function LiveDetection() {
                 showHud ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
               }`}
             >
-              {/* Left: Glowing HUD status pill */}
-              <div className="flex items-center gap-3 bg-slate-950/90 backdrop-blur-2xl px-4 py-2 rounded-2xl border border-cyan-500/40 shadow-2xl">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="font-black text-cyan-300 text-xs tracking-wider uppercase flex items-center gap-1.5">
-                  <Radio size={14} className="text-cyan-400 animate-pulse" />
-                  FULLSCREEN MONITOR
+              {/* Left: HUD status pill */}
+              <div className="flex items-center gap-3 bg-zinc-950/90 backdrop-blur-xl px-4 py-2 rounded-lg border border-zinc-800 shadow-xl">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="font-semibold text-white text-xs tracking-wide uppercase flex items-center gap-1.5">
+                  <Radio size={13} className="text-zinc-400" />
+                  Fullscreen Monitor
                 </span>
-                <span className="text-slate-700">|</span>
+                <span className="text-zinc-700">|</span>
                 <span className="text-emerald-400 font-mono font-bold text-xs">{telemetry.fps} FPS</span>
-                <span className="text-slate-700">|</span>
-                <span className="text-slate-300 font-mono text-xs">{telemetry.inference_ms}ms</span>
+                <span className="text-zinc-700">|</span>
+                <span className="text-zinc-300 font-mono text-xs">{telemetry.inference_ms}ms</span>
               </div>
 
               {/* Center: Source quick switcher in fullscreen */}
-              <div className="hidden md:flex items-center gap-1.5 bg-slate-950/90 backdrop-blur-2xl p-1.5 rounded-2xl border border-slate-800 shadow-2xl">
+              <div className="hidden md:flex items-center gap-1 bg-zinc-950/90 backdrop-blur-xl p-1 rounded-lg border border-zinc-800 shadow-xl">
                 <button
                   onClick={(e) => { e.stopPropagation(); switchMode('phone'); }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                    streamMode === 'phone' ? 'bg-cyan-500 text-slate-950 font-black shadow-lg shadow-cyan-500/30' : 'text-slate-400 hover:text-white'
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                    streamMode === 'phone' ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
                   }`}
                 >
                   📱 Mobile
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); switchMode('webcam'); }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                    streamMode === 'webcam' ? 'bg-cyan-500 text-slate-950 font-black shadow-lg shadow-cyan-500/30' : 'text-slate-400 hover:text-white'
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                    streamMode === 'webcam' ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
                   }`}
                 >
                   💻 Laptop Cam
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); switchMode('sim'); }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                    streamMode === 'sim' ? 'bg-cyan-500 text-slate-950 font-black shadow-lg shadow-cyan-500/30' : 'text-slate-400 hover:text-white'
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                    streamMode === 'sim' ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
                   }`}
                 >
-                  🔄 Sim
+                  🔄 Simulation
                 </button>
               </div>
 
               {/* Right: Zero-Border Toggle, Audio, and Exit Fullscreen */}
-              <div className="flex items-center gap-2 bg-slate-950/90 backdrop-blur-2xl p-1.5 rounded-2xl border border-slate-800 shadow-2xl">
-                {/* Zero-Border Fill vs Ratio Fit Toggle */}
+              <div className="flex items-center gap-1.5 bg-zinc-950/90 backdrop-blur-xl p-1 rounded-lg border border-zinc-800 shadow-xl">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setFitMode(prev => prev === 'cover' ? 'contain' : 'cover');
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${
                     fitMode === 'cover'
-                      ? 'bg-gradient-to-r from-emerald-500/30 to-cyan-500/30 text-emerald-300 border border-emerald-500/50 shadow-md'
-                      : 'bg-slate-800 text-slate-300 hover:text-white'
+                      ? 'bg-white text-black font-semibold'
+                      : 'bg-zinc-900 text-zinc-300 hover:text-white border border-zinc-800'
                   }`}
-                  title={fitMode === 'cover' ? "Zero-Border 100% Screen Fill is active (No black bars). Click for Fit." : "Letterbox Fit is active. Click for Zero-Border Screen Fill."}
+                  title={fitMode === 'cover' ? "Zero-Border Fill active. Click for Aspect Fit." : "Letterbox Fit active. Click for Zero-Border Fill."}
                 >
                   <Eye size={13} />
-                  <span>{fitMode === 'cover' ? '⬛ Zero-Border Fill' : '↔️ Aspect Fit'}</span>
+                  <span>{fitMode === 'cover' ? 'Zero-Border' : 'Aspect Fit'}</span>
                 </button>
 
                 <button
                   onClick={(e) => { e.stopPropagation(); setSoundAlerts(!soundAlerts); }}
-                  className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-all"
+                  className="p-1.5 rounded-md text-zinc-300 hover:text-white hover:bg-zinc-900 transition-all"
                   title="Toggle Audio Alerts"
                 >
-                  {soundAlerts ? <Volume2 size={16} className="text-cyan-400" /> : <VolumeX size={16} />}
+                  {soundAlerts ? <Volume2 size={15} className="text-white" /> : <VolumeX size={15} />}
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold transition-all border border-slate-700"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-semibold transition-all border border-zinc-800"
                   title="Exit Fullscreen (Esc or Double-Click)"
                 >
-                  <Minimize2 size={14} />
+                  <Minimize2 size={13} />
                   <span>Exit (Esc)</span>
                 </button>
               </div>
@@ -948,7 +949,7 @@ export default function LiveDetection() {
             className={`${
               isFullscreen
                 ? 'w-screen h-screen rounded-none m-0 p-0 border-0 shadow-none'
-                : 'rounded-2xl mx-auto shadow-2xl'
+                : 'rounded-xl mx-auto shadow-md'
             } transition-all duration-200 cursor-pointer ${
               (streamMode === 'phone' && !phoneConnected) || (streamMode === 'webcam' && !isStreaming)
                 ? 'hidden'
@@ -957,36 +958,36 @@ export default function LiveDetection() {
             title="Double-click to toggle Fullscreen"
           />
 
-          {/* Futuristic Corner Target Crosshairs */}
+          {/* Subtle Corner Target Crosshairs */}
           {(phoneConnected || (streamMode !== 'phone' && isStreaming)) && (
             <>
-              <div className="absolute top-4 left-4 w-7 h-7 border-t-2 border-l-2 border-cyan-400 pointer-events-none z-10" />
-              <div className="absolute top-4 right-4 w-7 h-7 border-t-2 border-r-2 border-cyan-400 pointer-events-none z-10" />
-              <div className="absolute bottom-4 left-4 w-7 h-7 border-b-2 border-l-2 border-cyan-400 pointer-events-none z-10" />
-              <div className="absolute bottom-4 right-4 w-7 h-7 border-b-2 border-r-2 border-cyan-400 pointer-events-none z-10" />
+              <div className="absolute top-4 left-4 w-5 h-5 border-t-2 border-l-2 border-zinc-600 pointer-events-none z-10" />
+              <div className="absolute top-4 right-4 w-5 h-5 border-t-2 border-r-2 border-zinc-600 pointer-events-none z-10" />
+              <div className="absolute bottom-4 left-4 w-5 h-5 border-b-2 border-l-2 border-zinc-600 pointer-events-none z-10" />
+              <div className="absolute bottom-4 right-4 w-5 h-5 border-b-2 border-r-2 border-zinc-600 pointer-events-none z-10" />
             </>
           )}
 
           {/* Webcam Start Prompt Card (When in Webcam mode & Not streaming yet) */}
           {streamMode === 'webcam' && !isStreaming && (
-            <div className="py-16 px-6 text-center space-y-6 flex flex-col items-center justify-center max-w-md">
-              <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-2xl shadow-blue-500/10">
-                <Camera size={44} />
+            <div className="py-16 px-6 text-center space-y-5 flex flex-col items-center justify-center max-w-md">
+              <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white shadow-inner">
+                <Camera size={32} />
               </div>
-              <div className="space-y-1.5">
-                <h3 className="text-xl font-bold text-white tracking-tight">Laptop / USB Camera</h3>
-                <p className="text-xs text-slate-400">
-                  Ready to capture live traffic from your integrated webcam, external USB cam, or DroidCam feed.
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold text-white tracking-tight">Laptop / USB Camera</h3>
+                <p className="text-xs text-zinc-400">
+                  Ready to capture live traffic from your integrated webcam, external USB cam, or virtual camera.
                 </p>
               </div>
 
               {videoDevices.length > 0 && (
                 <div className="w-full max-w-xs space-y-1 text-left">
-                  <label className="text-[11px] text-slate-400 font-semibold">Select Camera Input:</label>
+                  <label className="text-[11px] text-zinc-400 font-medium">Select Camera Input:</label>
                   <select
                     value={selectedDeviceId}
                     onChange={(e) => setSelectedDeviceId(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-700"
                   >
                     {videoDevices.map((d, i) => (
                       <option key={d.deviceId || i} value={d.deviceId}>
@@ -999,10 +1000,10 @@ export default function LiveDetection() {
 
               <button
                 onClick={() => startWebcam(selectedDeviceId)}
-                className="flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-black shadow-2xl shadow-blue-500/30 tracking-wider uppercase transition-all"
+                className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-white hover:bg-zinc-200 text-black text-xs font-semibold shadow-sm transition-all"
               >
-                <Camera size={16} />
-                <span>Start Camera Live Stream</span>
+                <Camera size={15} />
+                <span>Start Camera Stream</span>
               </button>
             </div>
           )}
@@ -1011,32 +1012,32 @@ export default function LiveDetection() {
           {streamMode === 'phone' && !phoneConnected && (
             <div className="py-10 px-6 text-center space-y-6 flex flex-col items-center justify-center max-w-2xl">
               <div className="space-y-1.5">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold">
-                  <Smartphone size={14} className="animate-pulse" />
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-medium">
+                  <Smartphone size={14} className="text-white" />
                   <span>Wireless Smartphone Surveillance</span>
                 </div>
-                <h3 className="text-2xl font-black text-white tracking-tight">Connect Phone Camera in 1-Click</h3>
-                <p className="text-xs text-slate-400 max-w-md mx-auto">
-                  Scan this QR code with your mobile camera or Google Lens to instantly transmit HD road frames to the YOLOv8 engine.
+                <h3 className="text-xl font-bold text-white tracking-tight">Connect Phone Camera</h3>
+                <p className="text-xs text-zinc-400 max-w-md mx-auto">
+                  Scan this QR code with your mobile camera or Google Lens to transmit live HD feed to the detection pipeline.
                 </p>
               </div>
 
-              {/* QR Code Container - 100% Offline Local Generation */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 p-6 rounded-3xl bg-slate-900/90 border border-cyan-500/30 shadow-2xl w-full backdrop-blur-xl">
-                <div className="p-3.5 bg-white rounded-2xl shadow-2xl shrink-0 border border-slate-200 flex flex-col items-center justify-center min-w-[190px] min-h-[190px]">
+              {/* QR Code Container */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800 shadow-xl w-full backdrop-blur-md">
+                <div className="p-3 bg-white rounded-xl shadow-md shrink-0 border border-zinc-200 flex flex-col items-center justify-center min-w-[180px] min-h-[180px]">
                   {qrCodeDataUrl ? (
                     <img
                       src={qrCodeDataUrl}
                       alt="Mobile Camera QR Code Scanner"
-                      className="w-44 h-44 object-contain rounded-xl"
+                      className="w-40 h-40 object-contain rounded-lg"
                     />
                   ) : (
-                    <div className="w-44 h-44 flex flex-col items-center justify-center text-slate-400 text-xs">
-                      <RefreshCw size={26} className="animate-spin text-cyan-600 mb-2" />
+                    <div className="w-40 h-40 flex flex-col items-center justify-center text-zinc-500 text-xs">
+                      <RefreshCw size={24} className="animate-spin text-zinc-800 mb-2" />
                       <span>Generating QR...</span>
                     </div>
                   )}
-                  <span className="text-[10px] font-black text-slate-800 mt-1 uppercase tracking-widest">
+                  <span className="text-[10px] font-semibold text-zinc-800 mt-1 uppercase tracking-wider">
                     Scan with Phone
                   </span>
                 </div>
@@ -1044,31 +1045,31 @@ export default function LiveDetection() {
                 <div className="space-y-3.5 text-left w-full max-w-sm">
                   {/* Backend Status indicator */}
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
-                      <QrCode size={14} /> Scanner Link
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+                      <QrCode size={13} /> Scanner Link
                     </span>
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium ${
                       backendStatus === 'online'
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                         : backendStatus === 'offline'
-                        ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
-                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                        ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                     }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${backendStatus === 'online' ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
-                      {backendStatus === 'online' ? 'AI Server Online' : backendStatus === 'offline' ? 'AI Server Offline' : 'Connecting...'}
+                      <span className={`w-1.5 h-1.5 rounded-full ${backendStatus === 'online' ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+                      {backendStatus === 'online' ? 'Backend Online' : backendStatus === 'offline' ? 'Backend Offline' : 'Connecting...'}
                     </span>
                   </div>
 
                   {/* Network Adapter IP Selector (if multiple exist) */}
                   {networkInfo?.all_ips && networkInfo.all_ips.length > 1 && (
                     <div className="space-y-1">
-                      <label className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
-                        <Wifi size={11} className="text-cyan-400" /> Select Network Adapter / Wi-Fi:
+                      <label className="text-[10px] font-medium text-zinc-400 flex items-center gap-1">
+                        <Wifi size={11} className="text-zinc-300" /> Select Network Adapter / Wi-Fi:
                       </label>
                       <select
                         value={selectedIp}
                         onChange={(e) => setSelectedIp(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 text-xs text-cyan-300 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-cyan-500"
+                        className="w-full bg-zinc-950 border border-zinc-800 text-xs text-zinc-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-zinc-700"
                       >
                         {networkInfo.all_ips.map((item, idx) => (
                           <option key={idx} value={item.ip}>
@@ -1081,16 +1082,16 @@ export default function LiveDetection() {
 
                   {/* Option 1: Mobile Browser Link */}
                   <div className="space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                      <ExternalLink size={12} className="text-cyan-400" /> Mobile Link:
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1">
+                      <ExternalLink size={12} /> Mobile Link:
                     </span>
-                    <div className="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-cyan-300">
-                      <span className="truncate mr-1.5 font-bold select-all">{activeMobileCamUrl}</span>
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-950 border border-zinc-800 text-[11px] font-mono text-zinc-200">
+                      <span className="truncate mr-2 select-all">{activeMobileCamUrl}</span>
                       <button
                         onClick={copyUrl}
-                        className="px-2 py-1 rounded-lg bg-cyan-500 text-slate-950 font-bold text-[10px] hover:bg-cyan-400 transition-colors shrink-0 shadow-sm flex items-center gap-1"
+                        className="px-2.5 py-1 rounded-md bg-white text-black font-semibold text-[10px] hover:bg-zinc-200 transition-colors shrink-0 shadow-sm flex items-center gap-1"
                       >
-                        {copied ? <Check size={12} /> : <Copy size={12} />}
+                        {copied ? <Check size={11} /> : <Copy size={11} />}
                         <span>{copied ? 'Copied' : 'Copy'}</span>
                       </button>
                     </div>
@@ -1099,98 +1100,98 @@ export default function LiveDetection() {
                   {/* Quick Test Transmitter in New Tab */}
                   <button
                     onClick={() => window.open(activeMobileCamUrl, '_blank')}
-                    className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-slate-800 to-slate-700 hover:from-slate-700 hover:to-slate-600 text-cyan-300 font-bold text-xs border border-cyan-500/30 transition-all flex items-center justify-center gap-2 shadow-md"
+                    className="w-full py-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-200 font-medium text-xs border border-zinc-800 transition-all flex items-center justify-center gap-2"
                   >
                     <ExternalLink size={13} />
-                    <span>⚡ Test Transmitter in New Tab (Direct PC Test)</span>
+                    <span>Test Transmitter in New Tab</span>
                   </button>
                 </div>
               </div>
 
-              {/* Troubleshooting & Mobile SSL Certificate Helper */}
-              <div className="w-full text-left p-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300 space-y-2.5">
-                <div className="flex items-center gap-1.5 text-amber-400 font-bold text-xs">
-                  <AlertCircle size={15} />
-                  <span>Mobile Phone par Camera chalane ke 3 aasan steps:</span>
+              {/* Troubleshooting Guide */}
+              <div className="w-full text-left p-4 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-zinc-300 space-y-2">
+                <div className="flex items-center gap-1.5 text-zinc-200 font-semibold text-xs">
+                  <AlertCircle size={14} className="text-zinc-400" />
+                  <span>Mobile Phone Connection Guide:</span>
                 </div>
-                <ol className="text-[11px] text-slate-300 space-y-1.5 pl-4 list-decimal">
+                <ol className="text-[11px] text-zinc-400 space-y-1.5 pl-4 list-decimal">
                   <li>
-                    <strong className="text-white">Same Wi-Fi / Hotspot:</strong> Mobile aur Laptop dono ek hi Wi-Fi network ya phone ke Hotspot se jude hone chahiye.
+                    <strong className="text-zinc-200">Same Wi-Fi / Hotspot:</strong> Mobile phone and laptop must be connected to the same Wi-Fi network or phone Hotspot.
                   </li>
                   <li>
-                    <strong className="text-amber-300">SSL Warning ("Your connection is not private"):</strong> Mobile browser me warning aane par <span className="text-cyan-300 font-bold">"Advanced"</span> par tap karein aur <span className="text-cyan-300 font-bold">"Proceed to {selectedIp || '...' } (unsafe)"</span> choose karein.
+                    <strong className="text-zinc-200">Certificate / Security Prompt:</strong> If the mobile browser displays "Your connection is not private", tap <span className="text-white font-medium">"Advanced"</span> and select <span className="text-white font-medium">"Proceed to {selectedIp || '...' } (unsafe)"</span>.
                   </li>
                   <li>
-                    <strong className="text-white">Camera Permission:</strong> Browser me Camera permission ko <span className="text-emerald-400 font-bold">ALLOW</span> karein. Uske baad laptop screen par live AI detection shuru ho jayegi!
+                    <strong className="text-zinc-200">Camera Permission:</strong> When prompted by your mobile browser, select <span className="text-emerald-400 font-medium">Allow</span> to start transmitting video.
                   </li>
                 </ol>
               </div>
 
-              {/* Radar Status Indicator */}
-              <div className="flex items-center gap-2 text-xs text-cyan-400/80 font-mono">
-                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 radar-glow" />
-                <span>Laptop screen is waiting for mobile phone camera stream...</span>
+              {/* Status Indicator */}
+              <div className="flex items-center gap-2 text-xs text-zinc-500 font-mono">
+                <span className="w-2 h-2 rounded-full bg-zinc-500 animate-pulse" />
+                <span>Waiting for mobile stream connection...</span>
               </div>
             </div>
           )}
 
-          {/* Floating High-Tech Top Telemetry HUD Overlay (Only when not in fullscreen) */}
+          {/* Floating Top Telemetry HUD Overlay (Only when not in fullscreen) */}
           {!isFullscreen && (phoneConnected || (streamMode !== 'phone' && isStreaming)) && (
             <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-20">
               {/* Left Telemetry Pill */}
-              <div className="pointer-events-auto flex items-center gap-2.5 bg-slate-950/85 backdrop-blur-xl px-3.5 py-1.5 rounded-2xl border border-cyan-500/30 text-xs font-mono text-white shadow-2xl">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="font-black text-cyan-300 uppercase tracking-wide">
-                  {streamMode === 'phone' ? '📱 MOBILE CAM' : streamMode === 'webcam' ? '💻 WEBCAM' : '🔄 SIMULATION'}
+              <div className="pointer-events-auto flex items-center gap-2.5 bg-zinc-950/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-zinc-800 text-xs font-mono text-white shadow-lg">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="font-semibold text-white uppercase tracking-wide">
+                  {streamMode === 'phone' ? 'Mobile Cam' : streamMode === 'webcam' ? 'Webcam' : 'Simulation'}
                 </span>
-                <span className="text-slate-600">|</span>
+                <span className="text-zinc-700">|</span>
                 <span className="text-emerald-400 font-bold">{telemetry.fps} FPS</span>
-                <span className="text-slate-600">|</span>
-                <span className="text-slate-300">{telemetry.inference_ms} ms</span>
+                <span className="text-zinc-700">|</span>
+                <span className="text-zinc-400">{telemetry.inference_ms} ms</span>
               </div>
 
               {/* Right Floating Controls */}
-              <div className="pointer-events-auto flex items-center gap-2 bg-slate-950/85 backdrop-blur-xl p-1 rounded-2xl border border-slate-800 shadow-2xl">
+              <div className="pointer-events-auto flex items-center gap-1 bg-zinc-950/90 backdrop-blur-md p-1 rounded-lg border border-zinc-800 shadow-lg">
                 <button
                   onClick={() => setSoundAlerts(!soundAlerts)}
-                  className={`p-1.5 rounded-xl transition-all ${
-                    soundAlerts ? 'text-cyan-400 hover:bg-cyan-500/10' : 'text-slate-600'
+                  className={`p-1.5 rounded-md transition-all ${
+                    soundAlerts ? 'text-white bg-zinc-800' : 'text-zinc-500 hover:text-zinc-300'
                   }`}
                   title={soundAlerts ? "Audio Alerts Enabled" : "Muted"}
                 >
-                  {soundAlerts ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                  {soundAlerts ? <Volume2 size={15} /> : <VolumeX size={15} />}
                 </button>
 
                 <button
                   onClick={() => setIsSidePanelOpen(!isSidePanelOpen)}
-                  className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+                  className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
                   title={isSidePanelOpen ? "Expand to Full Width" : "Show Side Detections"}
                 >
-                  {isSidePanelOpen ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
+                  {isSidePanelOpen ? <PanelRightClose size={15} /> : <PanelRightOpen size={15} />}
                 </button>
 
                 <button
                   onClick={toggleFullscreen}
-                  className="p-1.5 rounded-xl text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all"
+                  className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
                   title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
                 >
-                  {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                  {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
                 </button>
 
                 {isStreaming && (
                   <button
                     onClick={stopStream}
-                    className="p-1.5 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 transition-all"
+                    className="p-1.5 rounded-md text-red-400 hover:text-red-300 hover:bg-red-950/40 transition-all"
                     title="Stop Stream"
                   >
-                    <CameraOff size={16} />
+                    <CameraOff size={15} />
                   </button>
                 )}
               </div>
             </div>
           )}
 
-          {/* Floating High-Tech Bottom Telemetry HUD Overlay (Auto-hides in fullscreen) */}
+          {/* Floating Bottom Telemetry HUD Overlay (Auto-hides in fullscreen) */}
           {(phoneConnected || (streamMode !== 'phone' && isStreaming)) && (
             <div
               className={`absolute bottom-4 left-4 right-4 flex flex-wrap items-center justify-between gap-2 z-20 transition-all duration-300 ${
@@ -1199,23 +1200,23 @@ export default function LiveDetection() {
             >
               {/* Vehicle breakdown counters */}
               <div className="pointer-events-auto flex items-center gap-2 flex-wrap">
-                <div className="bg-slate-950/85 backdrop-blur-xl px-3 py-1.5 rounded-xl border border-white/10 text-xs text-white shadow-xl flex items-center gap-2 font-bold font-mono">
-                  <span className="text-slate-400">Total:</span>
-                  <span className="text-cyan-400">{telemetry.vehicles_count}</span>
+                <div className="bg-zinc-950/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-zinc-800 text-xs text-white shadow-lg flex items-center gap-2 font-mono">
+                  <span className="text-zinc-400">Total:</span>
+                  <span className="font-bold text-white">{telemetry.vehicles_count}</span>
                 </div>
 
-                <div className="hidden sm:flex items-center gap-1.5 bg-slate-950/85 backdrop-blur-xl px-2.5 py-1.5 rounded-xl border border-white/10 text-xs text-slate-300 font-mono">
-                  <span>🚗 {telemetry.counts?.cars || 0}</span>
-                  <span className="text-slate-600">•</span>
-                  <span>🏍️ {telemetry.counts?.motorcycles || 0}</span>
-                  <span className="text-slate-600">•</span>
-                  <span>🚚 {(telemetry.counts?.trucks || 0) + (telemetry.counts?.buses || 0)}</span>
+                <div className="hidden sm:flex items-center gap-2 bg-zinc-950/90 backdrop-blur-md px-2.5 py-1.5 rounded-lg border border-zinc-800 text-xs text-zinc-300 font-mono">
+                  <span>Cars {telemetry.counts?.cars || 0}</span>
+                  <span className="text-zinc-700">•</span>
+                  <span>Bikes {telemetry.counts?.motorcycles || 0}</span>
+                  <span className="text-zinc-700">•</span>
+                  <span>Heavy {(telemetry.counts?.trucks || 0) + (telemetry.counts?.buses || 0)}</span>
                 </div>
 
                 {activeVehicles.some(v => v.power_type === 'Electric') && (
-                  <div className="bg-emerald-950/80 backdrop-blur-xl px-2.5 py-1.5 rounded-xl border border-emerald-500/40 text-xs text-emerald-300 font-bold font-mono flex items-center gap-1">
-                    <Zap size={13} className="text-emerald-400" />
-                    <span>EV In Frame</span>
+                  <div className="bg-zinc-950/90 backdrop-blur-md px-2.5 py-1.5 rounded-lg border border-emerald-500/30 text-xs text-emerald-400 font-semibold font-mono flex items-center gap-1">
+                    <Zap size={13} />
+                    <span>EV Detected</span>
                   </div>
                 )}
               </div>
@@ -1223,13 +1224,13 @@ export default function LiveDetection() {
               {/* Violations banner */}
               <div className="pointer-events-auto flex items-center gap-2">
                 {telemetry.violations_count > 0 ? (
-                  <div className="bg-rose-600 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-rose-400 text-xs font-bold text-white shadow-xl animate-bounce flex items-center gap-1.5">
-                    <ShieldAlert size={15} />
-                    <span>{telemetry.violations_count} VIOLATION DETECTED!</span>
+                  <div className="bg-red-950/90 border border-red-500/50 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-semibold text-red-300 shadow-lg flex items-center gap-1.5">
+                    <ShieldAlert size={14} className="text-red-400" />
+                    <span>{telemetry.violations_count} VIOLATION DETECTED</span>
                   </div>
                 ) : (
-                  <div className="bg-slate-950/85 backdrop-blur-xl px-3 py-1.5 rounded-xl border border-emerald-500/20 text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <div className="bg-zinc-950/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-zinc-800 text-xs text-zinc-400 font-medium flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                     <span>Perimeter Secure</span>
                   </div>
                 )}
@@ -1240,84 +1241,84 @@ export default function LiveDetection() {
 
         {/* Real-time Objects in View Panel (Collapsible) */}
         {isSidePanelOpen && !isFullscreen && (
-          <div className="rounded-3xl bg-slate-900/80 border border-slate-800/80 p-5 backdrop-blur-xl flex flex-col justify-between space-y-4 shadow-2xl transition-all duration-300">
+          <div className="rounded-xl bg-zinc-900/60 border border-zinc-800 p-4 backdrop-blur-md flex flex-col justify-between space-y-4 shadow-sm transition-all duration-300">
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-base text-white">Active Detections</h3>
-                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 font-bold border border-cyan-500/30">
+                  <h3 className="font-semibold text-sm text-white">Active Detections</h3>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 font-medium border border-zinc-700">
                     {activeVehicles.length} in frame
                   </span>
                 </div>
                 <button
                   onClick={() => setIsSidePanelOpen(false)}
-                  className="p-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800 text-xs"
+                  className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 text-xs transition-colors"
                   title="Hide side panel"
                 >
-                  <PanelRightClose size={15} />
+                  <PanelRightClose size={14} />
                 </button>
               </div>
-              <p className="text-xs text-slate-400">YOLOv8 tracking, OCR plates, and helmet compliance</p>
+              <p className="text-xs text-zinc-400">Tracking, OCR plates, and helmet compliance</p>
             </div>
 
-            <div className="flex-1 overflow-y-auto max-h-[420px] space-y-2.5 pr-1">
+            <div className="flex-1 overflow-y-auto max-h-[420px] space-y-2 pr-1">
               {activeVehicles.length > 0 ? (
                 activeVehicles.map((v, idx) => (
                   <div
                     key={v.track_id || idx}
-                    className={`p-3.5 rounded-2xl border transition-all ${
+                    className={`p-3 rounded-lg border transition-all ${
                       v.has_violation
-                        ? 'bg-rose-500/10 border-rose-500/30 shadow-lg shadow-rose-500/5'
+                        ? 'bg-red-950/10 border-red-900/50'
                         : v.power_type === 'Electric'
-                        ? 'bg-cyan-500/10 border-cyan-500/30 shadow-lg shadow-cyan-500/5'
-                        : 'bg-slate-950/70 border-slate-800/80'
+                        ? 'bg-zinc-950 border-emerald-900/40'
+                        : 'bg-zinc-950 border-zinc-800'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {v.vehicle_type === 'Motorcycle' ? (
-                          <Bike size={16} className="text-emerald-400" />
+                          <Bike size={15} className="text-zinc-300" />
                         ) : v.vehicle_type === 'Truck' ? (
-                          <Truck size={16} className="text-amber-400" />
+                          <Truck size={15} className="text-zinc-300" />
                         ) : v.vehicle_type === 'Bus' ? (
-                          <Bus size={16} className="text-purple-400" />
+                          <Bus size={15} className="text-zinc-300" />
                         ) : (
-                          <Car size={16} className="text-cyan-400" />
+                          <Car size={15} className="text-zinc-300" />
                         )}
-                        <span className="font-bold text-sm text-white">
+                        <span className="font-semibold text-xs text-white">
                           #{v.track_id} {v.vehicle_type}
                         </span>
                       </div>
-                      <span className="text-xs font-mono font-bold text-slate-200">
+                      <span className="text-xs font-mono text-zinc-400">
                         {Math.round(v.confidence * 100)}%
                       </span>
                     </div>
 
                     <div className="mt-2.5 grid grid-cols-2 gap-2 text-[11px]">
                       {/* Plate Status */}
-                      <div className="p-2 rounded-xl bg-slate-900/90 border border-slate-800">
-                        <span className="text-slate-400 block text-[10px]">License Plate</span>
-                        <span className="font-mono text-white font-bold truncate block">
+                      <div className="p-2 rounded-md bg-zinc-900 border border-zinc-800/80">
+                        <span className="text-zinc-500 block text-[10px]">License Plate</span>
+                        <span className="font-mono text-white font-semibold truncate block">
                           {v.plate?.detected ? v.plate.plate_number : 'None'}
                         </span>
                       </div>
 
                       {/* Power Type */}
-                      <div className="p-2 rounded-xl bg-slate-900/90 border border-slate-800">
-                        <span className="text-slate-400 block text-[10px]">Propulsion</span>
-                        <span className={`font-bold ${v.power_type === 'Electric' ? 'text-cyan-400' : 'text-slate-300'}`}>
+                      <div className="p-2 rounded-md bg-zinc-900 border border-zinc-800/80">
+                        <span className="text-zinc-500 block text-[10px]">Propulsion</span>
+                        <span className={`font-semibold ${v.power_type === 'Electric' ? 'text-emerald-400' : 'text-zinc-300'}`}>
                           {v.power_type}
                         </span>
                       </div>
 
                       {/* Helmet Status for two-wheelers */}
                       {v.helmet && v.helmet.rider_detected && (
-                        <div className="col-span-2 p-2 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
-                          <span className="text-slate-400">Helmet Check:</span>
-                          <span className={`font-bold ${
-                            v.helmet.helmet_status === 'YES' ? 'text-emerald-400' : 'text-rose-400'
+                        <div className="col-span-2 p-2 rounded-md bg-zinc-900 border border-zinc-800/80 flex items-center justify-between">
+                          <span className="text-zinc-500">Helmet Check:</span>
+                          <span className={`font-semibold ${
+                            v.helmet.helmet_status === 'YES' ? 'text-emerald-400' : 'text-red-400'
                           }`}>
-                            {v.helmet.helmet_status === 'YES' ? '✓ SAFE (HELMET)' : '✗ NO HELMET VIOLATION'}
+                            {v.helmet.helmet_status === 'YES' ? 'Verified (Helmet)' : 'No Helmet Violation'}
                           </span>
                         </div>
                       )}
@@ -1325,25 +1326,25 @@ export default function LiveDetection() {
                   </div>
                 ))
               ) : (
-                <div className="py-16 text-center text-slate-500 text-xs flex flex-col items-center justify-center space-y-2">
-                  <Layers size={32} className="text-slate-700" />
+                <div className="py-14 text-center text-zinc-500 text-xs flex flex-col items-center justify-center space-y-2">
+                  <Layers size={28} className="text-zinc-700" />
                   <span>No vehicles currently inside surveillance perimeter.</span>
                 </div>
               )}
             </div>
 
-            {/* Quick HUD Color Legend */}
-            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 text-[11px] space-y-1.5 text-slate-400">
+            {/* Quick Status Legend */}
+            <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 text-[11px] space-y-1.5 text-zinc-400">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                <span>Safe vehicle / Helmet verified</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span>Verified / Helmet compliant</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+                <span className="w-2 h-2 rounded-full bg-red-400" />
                 <span>Violation (No helmet / Missing plate)</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
+                <span className="w-2 h-2 rounded-full bg-white" />
                 <span>Electric Vehicle (Green Plate)</span>
               </div>
             </div>

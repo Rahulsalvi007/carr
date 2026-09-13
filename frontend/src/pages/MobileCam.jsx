@@ -370,7 +370,7 @@ export default function MobileCam({ onBackToDashboard }) {
   }, []);
 
   return (
-    <div className="h-[100dvh] w-full bg-slate-950 text-white flex flex-col justify-between overflow-hidden select-none relative font-sans">
+    <div className="h-[100dvh] w-full bg-black text-white flex flex-col justify-between overflow-hidden select-none relative font-sans">
       {/* Hidden file input for native camera snapshot capture */}
       <input
         ref={fileInputRef}
@@ -382,7 +382,7 @@ export default function MobileCam({ onBackToDashboard }) {
       />
 
       {/* Floating Top HUD Bar */}
-      <header className="absolute top-0 left-0 right-0 z-30 p-3 flex items-center justify-between bg-gradient-to-b from-slate-950/90 via-slate-950/60 to-transparent backdrop-blur-md">
+      <header className="absolute top-0 left-0 right-0 z-30 p-3 flex items-center justify-between bg-gradient-to-b from-zinc-950/90 via-zinc-950/60 to-transparent backdrop-blur-md">
         <div className="flex items-center gap-2">
           {onBackToDashboard && (
             <button
@@ -390,55 +390,55 @@ export default function MobileCam({ onBackToDashboard }) {
                 stopPhoneCamera();
                 onBackToDashboard();
               }}
-              className="p-2 rounded-2xl bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-white"
+              className="p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-300 hover:text-white"
               title="Back to Dashboard"
             >
-              <ArrowLeft size={16} />
+              <ArrowLeft size={15} />
             </button>
           )}
 
           {/* Connection Status Badge */}
-          <div className="flex items-center gap-2 bg-slate-900/80 border border-slate-800 px-3 py-1.5 rounded-2xl text-xs font-mono">
-            <span className={`w-2.5 h-2.5 rounded-full ${isStreaming ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
-            <span className="font-bold text-white tracking-wide">
+          <div className="flex items-center gap-2 bg-zinc-900/90 border border-zinc-800 px-3 py-1.5 rounded-lg text-xs font-mono">
+            <span className={`w-2 h-2 rounded-full ${isStreaming ? 'bg-emerald-400' : 'bg-zinc-500'}`} />
+            <span className="font-semibold text-white tracking-wide">
               {isStreaming ? `${telemetry.fps} FPS • LIVE` : 'STANDBY'}
             </span>
           </div>
         </div>
 
         {/* Top Right Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {/* Quality Switcher */}
           <button
             onClick={() => setQualityMode(q => q === 'smooth' ? 'hd' : 'smooth')}
-            className="px-2.5 py-1 rounded-xl bg-slate-900/80 border border-slate-800 text-[11px] font-mono text-cyan-300 font-bold"
+            className="px-2.5 py-1 rounded-md bg-zinc-900/90 border border-zinc-800 text-[11px] font-mono text-zinc-200 font-medium"
             title="Toggle Stream Resolution"
           >
-            {qualityMode === 'hd' ? '640p HD' : '480p FAST'}
+            {qualityMode === 'hd' ? '640p HD' : '480p Fast'}
           </button>
 
           {/* AI Feed vs Raw Camera View Toggle */}
           {annotatedFrame && isStreaming && (
             <button
               onClick={() => setViewMode(v => v === 'raw' ? 'ai' : 'raw')}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[11px] font-bold transition-all ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md border text-[11px] font-medium transition-all ${
                 viewMode === 'ai'
-                  ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
-                  : 'bg-slate-900/80 text-slate-400 border-slate-800'
+                  ? 'bg-white text-black border-white font-semibold'
+                  : 'bg-zinc-900/90 text-zinc-300 border-zinc-800'
               }`}
             >
               <Eye size={12} />
-              <span>{viewMode === 'ai' ? 'AI HUD' : 'RAW'}</span>
+              <span>{viewMode === 'ai' ? 'AI Overlay' : 'Raw'}</span>
             </button>
           )}
 
           {/* Camera Flip */}
           <button
             onClick={toggleCameraFacing}
-            className="p-2 rounded-2xl bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-white"
+            className="p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-300 hover:text-white"
             title="Flip Camera (Front/Rear)"
           >
-            <RotateCw size={16} />
+            <RotateCw size={15} />
           </button>
         </div>
       </header>
@@ -466,28 +466,28 @@ export default function MobileCam({ onBackToDashboard }) {
         {/* Viewfinder Corner Target Brackets */}
         {isStreaming && (
           <div className="absolute inset-6 pointer-events-none z-10">
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-cyan-400/70" />
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-cyan-400/70" />
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-cyan-400/70" />
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-cyan-400/70" />
+            <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-zinc-500" />
+            <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-zinc-500" />
+            <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-zinc-500" />
+            <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-zinc-500" />
           </div>
         )}
 
         {/* Live Telemetry Overlay on Mobile */}
         {isStreaming && (
           <div className="absolute top-16 left-4 right-4 flex items-center justify-between z-20 pointer-events-none">
-            <div className="bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-xl border border-white/10 text-xs font-mono text-cyan-300">
-              <span>🚗 {telemetry.vehicles_in_view} Vehicles</span>
+            <div className="bg-zinc-950/90 backdrop-blur-md px-3 py-1 rounded-lg border border-zinc-800 text-xs font-mono text-zinc-200">
+              <span>{telemetry.vehicles_in_view} Vehicles</span>
             </div>
 
             {telemetry.violations_in_view > 0 ? (
-              <div className="bg-rose-600/90 backdrop-blur-md px-3 py-1 rounded-xl border border-rose-400 text-xs font-bold text-white shadow-lg animate-bounce flex items-center gap-1">
+              <div className="bg-red-950/90 border border-red-500/50 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-semibold text-red-300 shadow-lg flex items-center gap-1">
                 <ShieldAlert size={13} />
-                <span>Violation!</span>
+                <span>Violation</span>
               </div>
             ) : (
-              <div className="bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-xl border border-white/10 text-xs font-mono text-emerald-400">
-                <span>Safe</span>
+              <div className="bg-zinc-950/90 backdrop-blur-md px-3 py-1 rounded-lg border border-zinc-800 text-xs font-mono text-emerald-400">
+                <span>Secure</span>
               </div>
             )}
           </div>
@@ -496,75 +496,75 @@ export default function MobileCam({ onBackToDashboard }) {
         {/* Standby Card (When not streaming yet) */}
         {!isStreaming && (
           <div className="z-20 p-6 text-center space-y-5 max-w-sm mx-auto flex flex-col items-center justify-center">
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shadow-2xl shadow-cyan-500/20">
-              <Smartphone size={38} className="animate-pulse" />
+            <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white shadow-inner">
+              <Smartphone size={32} />
             </div>
 
-            <div className="space-y-1.5">
-              <h2 className="text-xl font-black text-white tracking-tight">Wireless Road Camera</h2>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Stream real-time traffic video from this phone directly to your laptop for YOLOv8 AI detection.
+            <div className="space-y-1">
+              <h2 className="text-lg font-semibold text-white tracking-tight">Wireless Road Camera</h2>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                Stream real-time traffic video from this phone directly to your computer vision pipeline.
               </p>
             </div>
 
             {httpSecurityBlocked && (
-              <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs text-left space-y-1.5 w-full">
-                <span className="font-bold flex items-center gap-1">⚠️ Camera Permission Alert:</span>
-                <p className="text-[11px] text-slate-300 leading-snug">
-                  Mobile browser me camera permission allow karein, ya neeche <strong>"Snap Road Photo"</strong> button use karein jo bina kisi permission issue ke chalta hai.
+              <div className="p-3.5 rounded-xl bg-zinc-950 border border-amber-500/30 text-amber-300 text-xs text-left space-y-1.5 w-full">
+                <span className="font-semibold flex items-center gap-1">Camera Permission Alert:</span>
+                <p className="text-[11px] text-zinc-300 leading-snug">
+                  Please allow camera permission in your mobile browser, or use the photo snapshot button below.
                 </p>
               </div>
             )}
 
             <button
               onClick={startPhoneCamera}
-              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white font-black text-sm tracking-wider uppercase shadow-2xl shadow-cyan-500/30 active:scale-95 transition-all flex items-center justify-center gap-2"
+              className="w-full py-3 px-6 rounded-lg bg-white hover:bg-zinc-200 text-black font-semibold text-xs tracking-wide shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
             >
-              <Camera size={18} />
+              <Camera size={16} />
               <span>Activate Live Stream</span>
             </button>
 
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-full py-3 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-cyan-300 font-bold text-xs border border-cyan-500/30 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-lg"
+              className="w-full py-2.5 px-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-200 font-medium text-xs border border-zinc-800 active:scale-95 transition-all flex items-center justify-center gap-2"
             >
-              <Camera size={15} />
-              <span>📸 Snap Road Photo ({snapCount})</span>
+              <Camera size={14} />
+              <span>Capture Photo ({snapCount})</span>
             </button>
           </div>
         )}
       </main>
 
       {/* Floating Bottom Shutter Bar */}
-      <footer className="absolute bottom-0 left-0 right-0 z-30 p-4 flex items-center justify-around bg-gradient-to-t from-slate-950/95 via-slate-950/70 to-transparent backdrop-blur-md">
+      <footer className="absolute bottom-0 left-0 right-0 z-30 p-4 flex items-center justify-around bg-gradient-to-t from-zinc-950/95 via-zinc-950/70 to-transparent backdrop-blur-md">
         {/* Instant photo snap button */}
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-white active:scale-95 transition-all"
+          className="p-3 rounded-xl bg-zinc-900/90 border border-zinc-800 text-zinc-300 hover:text-white active:scale-95 transition-all"
           title="Take Instant Photo"
         >
-          <Camera size={20} />
+          <Camera size={18} />
         </button>
 
         {/* Big Center Shutter Button */}
         {!isStreaming ? (
           <button
             onClick={startPhoneCamera}
-            className="w-20 h-20 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 p-1.5 shadow-2xl shadow-cyan-500/40 active:scale-90 transition-all flex items-center justify-center"
+            className="w-16 h-16 rounded-full bg-white p-1 shadow-lg active:scale-90 transition-all flex items-center justify-center"
             title="Start Streaming"
           >
-            <div className="w-full h-full rounded-full border-2 border-white/80 flex items-center justify-center bg-cyan-400/20">
-              <Camera size={26} className="text-white" />
+            <div className="w-full h-full rounded-full border border-black/20 flex items-center justify-center bg-zinc-100">
+              <Camera size={22} className="text-black" />
             </div>
           </button>
         ) : (
           <button
             onClick={stopPhoneCamera}
-            className="w-20 h-20 rounded-full bg-gradient-to-tr from-rose-600 to-red-600 p-1.5 shadow-2xl shadow-rose-500/40 active:scale-90 transition-all flex items-center justify-center animate-pulse"
+            className="w-16 h-16 rounded-full bg-red-600 p-1 shadow-lg active:scale-90 transition-all flex items-center justify-center"
             title="Stop Streaming"
           >
-            <div className="w-full h-full rounded-full border-2 border-white/80 flex items-center justify-center bg-rose-500/30">
-              <CameraOff size={26} className="text-white" />
+            <div className="w-full h-full rounded-full border border-white/40 flex items-center justify-center bg-red-700">
+              <CameraOff size={22} className="text-white" />
             </div>
           </button>
         )}
@@ -572,10 +572,10 @@ export default function MobileCam({ onBackToDashboard }) {
         {/* Facing Camera Switch */}
         <button
           onClick={toggleCameraFacing}
-          className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-white active:scale-95 transition-all"
+          className="p-3 rounded-xl bg-zinc-900/90 border border-zinc-800 text-zinc-300 hover:text-white active:scale-95 transition-all"
           title="Flip Camera"
         >
-          <RotateCw size={20} />
+          <RotateCw size={18} />
         </button>
       </footer>
     </div>
