@@ -1,0 +1,41 @@
+﻿# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+*.venv
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.pytest_cache/
+
+# Databases & local storage
+*.db
+*.sqlite
+*.sqlite3
+traffic_monitoring.db
+backend/storage/uploads/*
+!backend/storage/uploads/.gitkeep
+backend/storage/violations/*
+!backend/storage/violations/.gitkeep
+backend/storage/outputs/*
+!backend/storage/outputs/.gitkeep
+
+# Node / Frontend artifacts
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
