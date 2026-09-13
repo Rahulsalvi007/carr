@@ -13,8 +13,22 @@ router = APIRouter(prefix="", tags=["Live WebSocket"])
 
 import asyncio
 
-# Set of active spectator/viewer WebSockets (e.g. laptop screens watching mobile stream)
-active_viewers: Set[WebSocket] = set()
+# Map of active spectator/viewer WebSockets to their individual single-frame queues
+viewer_queues: dict[WebSocket, asyncio.Queue] = {}
+
+def broadcast_frame_to_viewers(payload_str: str, exclude_ws: WebSocket = None):
+    """Dispatches payload to all active viewers with non-blocking zero-latency drop semantics."""
+    for ws, q in list(viewer_queues.items()):
+        if ws != exclude_ws:
+            if q.full():
+                try:
+                    q.get_nowait()
+                except asyncio.QueueEmpty:
+                    pass
+            try:
+                q.put_nowait(payload_str)
+            except asyncio.QueueFull:
+                pass
 
 def sync_save_detections(result):
     db = SessionLocal()
@@ -83,40 +97,53 @@ async def websocket_live_endpoint(websocket: WebSocket):
             # Role registration (e.g., Laptop acting as remote display viewer for phone camera)
             if data.get("role") == "viewer" or data.get("action") == "register_viewer":
                 is_viewer = True
-                active_viewers.add(websocket)
+                q = asyncio.Queue(maxsize=1)
+                viewer_queues[websocket] = q
                 await websocket.send_text(json.dumps({
                     "status": "viewer_registered",
                     "message": "Listening for wireless camera streams..."
                 }))
-                # Dedicated resilient viewer loop with keepalive heartbeat
-                while True:
-                    try:
-                        viewer_msg_raw = await asyncio.wait_for(websocket.receive_text(), timeout=8.0)
-                        v_data = json.loads(viewer_msg_raw)
-                        if v_data.get("action") == "ping":
-                            await websocket.send_text(json.dumps({"status": "pong"}))
-                    except asyncio.TimeoutError:
-                        # Keep proxy & browser WebSocket connection active and healthy
+
+                async def viewer_writer():
+                    while True:
                         try:
-                            await websocket.send_text(json.dumps({"status": "heartbeat", "time": time.time()}))
+                            msg = await asyncio.wait_for(q.get(), timeout=4.0)
+                            await websocket.send_text(msg)
+                        except asyncio.TimeoutError:
+                            try:
+                                await websocket.send_text(json.dumps({"status": "heartbeat", "time": time.time()}))
+                            except Exception:
+                                break
                         except Exception:
                             break
-                    except (WebSocketDisconnect, RuntimeError):
-                        break
-                    except Exception:
-                        break
+
+                async def viewer_reader():
+                    while True:
+                        try:
+                            raw = await websocket.receive_text()
+                            v_data = json.loads(raw)
+                            if v_data.get("action") == "ping":
+                                await websocket.send_text(json.dumps({"status": "pong"}))
+                        except Exception:
+                            break
+
+                writer_task = asyncio.create_task(viewer_writer())
+                reader_task = asyncio.create_task(viewer_reader())
+                done, pending = await asyncio.wait(
+                    [writer_task, reader_task],
+                    return_when=asyncio.FIRST_COMPLETED
+                )
+                for t in pending:
+                    t.cancel()
                 return  # Viewer loop completed cleanly
 
             # Initial handshake from mobile transmitter
             if data.get("action") == "camera_started":
                 is_mobile_sender = True
-                notify_msg = json.dumps({"status": "mobile_stream_started", "source": "mobile_phone"})
-                for v in list(active_viewers):
-                    if v != websocket:
-                        try:
-                            await asyncio.wait_for(v.send_text(notify_msg), timeout=1.0)
-                        except Exception:
-                            active_viewers.discard(v)
+                broadcast_frame_to_viewers(
+                    json.dumps({"status": "mobile_stream_started", "source": "mobile_phone"}),
+                    websocket
+                )
                 await websocket.send_text(json.dumps({"status": "transmitter_ready"}))
                 continue
 
@@ -165,64 +192,64 @@ async def websocket_live_endpoint(websocket: WebSocket):
             # Encode annotated frame to base64
             annotated_b64 = pipeline.frame_to_base64(result["annotated_frame"], quality=65)
 
-            # Transmit back payload to client
-            response_payload = {
+            vehicles_data = [
+                {
+                    "track_id": v["track_id"],
+                    "vehicle_type": v["vehicle_type"],
+                    "confidence": v["confidence"],
+                    "bbox": v["bbox"],
+                    "plate": v["plate_info"],
+                    "helmet": v["helmet_info"],
+                    "power_type": v["power_type"],
+                    "power_type_confidence": v["power_type_confidence"],
+                    "has_violation": v["has_violation"]
+                }
+                for v in result["vehicles"]
+            ]
+
+            # Full payload with video frame for viewers (laptop monitor)
+            viewer_payload = {
                 "frame_id": frame_counter,
                 "inference_ms": inference_time,
                 "fps": round(1000.0 / max(1.0, inference_time), 1),
                 "counts": result["counts"],
                 "source": data.get("source", "camera"),
-                "vehicles": [
-                    {
-                        "track_id": v["track_id"],
-                        "vehicle_type": v["vehicle_type"],
-                        "confidence": v["confidence"],
-                        "bbox": v["bbox"],
-                        "plate": v["plate_info"],
-                        "helmet": v["helmet_info"],
-                        "power_type": v["power_type"],
-                        "power_type_confidence": v["power_type_confidence"],
-                        "has_violation": v["has_violation"]
-                    }
-                    for v in result["vehicles"]
-                ],
+                "vehicles": vehicles_data,
                 "violations": result["violations"],
                 "annotated_frame": f"data:image/jpeg;base64,{annotated_b64}"
             }
+            viewer_payload_str = json.dumps(viewer_payload)
 
-            payload_str = json.dumps(response_payload)
-
-            # 1. Reply to transmitter
+            # 1. Reply to transmitter: If mobile transmitter doesn't need AI preview, send lightweight telemetry
             try:
-                await websocket.send_text(payload_str)
+                if data.get("need_preview", False) or data.get("source") != "mobile_phone":
+                    await websocket.send_text(viewer_payload_str)
+                else:
+                    transmitter_payload = {
+                        "frame_id": frame_counter,
+                        "inference_ms": inference_time,
+                        "fps": round(1000.0 / max(1.0, inference_time), 1),
+                        "counts": result["counts"],
+                        "source": "mobile_phone",
+                        "vehicles": vehicles_data,
+                        "violations": result["violations"]
+                    }
+                    await websocket.send_text(json.dumps(transmitter_payload))
             except Exception:
                 break
 
-            # 2. Broadcast to all active viewers (e.g. laptop monitoring dashboard)
-            dead_viewers = []
-            for viewer in list(active_viewers):
-                if viewer != websocket:
-                    try:
-                        await asyncio.wait_for(viewer.send_text(payload_str), timeout=1.5)
-                    except Exception:
-                        dead_viewers.append(viewer)
-
-            for d in dead_viewers:
-                active_viewers.discard(d)
+            # 2. Non-blocking zero-latency broadcast to all active spectators (e.g. laptop)
+            broadcast_frame_to_viewers(viewer_payload_str, websocket)
 
     except (WebSocketDisconnect, RuntimeError):
         pass
     except Exception as e:
         print(f"[WebSocket] Streaming error: {e}")
     finally:
-        active_viewers.discard(websocket)
+        viewer_queues.pop(websocket, None)
         if is_mobile_sender:
             disconnect_msg = json.dumps({"status": "mobile_stream_stopped"})
-            for viewer in list(active_viewers):
-                try:
-                    await asyncio.wait_for(viewer.send_text(disconnect_msg), timeout=1.0)
-                except Exception:
-                    pass
+            broadcast_frame_to_viewers(disconnect_msg, websocket)
         try:
             await websocket.close()
         except Exception:

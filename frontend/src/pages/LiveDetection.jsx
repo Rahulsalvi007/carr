@@ -76,6 +76,10 @@ export default function LiveDetection() {
   const disconnectTimerRef = useRef(null);
   const pingTimerRef = useRef(null);
   const reconnectTimerRef = useRef(null);
+  const audioCtxRef = useRef(null);
+  const lastAlertSoundTimeRef = useRef(0);
+  const isIntentionalCloseRef = useRef(false);
+  const lastStateUpdateTimeRef = useRef(0);
 
   // Helper to enumerate available camera inputs (Webcam, USB, DroidCam, Iriun, etc.)
   const loadCameraDevices = async () => {
@@ -120,22 +124,71 @@ export default function LiveDetection() {
     };
   }, []);
 
-  // Play subtle warning sound on violation
+  // Play subtle warning sound on violation (strictly throttled with persistent AudioContext)
   const playAlertSound = () => {
     if (!soundAlerts) return;
+    const now = Date.now();
+    if (now - lastAlertSoundTimeRef.current < 3500) return;
+    lastAlertSoundTimeRef.current = now;
+
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
       osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start();
-      osc.stop(ctx.currentTime + 0.3);
+      osc.stop(ctx.currentTime + 0.25);
     } catch (e) {}
+  };
+
+  // Zero-Flicker Hardware Canvas Painter: Only updates canvas dimensions when source dimensions actually change
+  const renderFrameToCanvas = (annotatedFrameUrl) => {
+    if (!annotatedFrameUrl || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const img = new Image();
+    img.onload = () => {
+      if (!canvasRef.current) return;
+      if (canvas.width !== img.width || canvas.height !== img.height) {
+        canvas.width = img.width;
+        canvas.height = img.height;
+      }
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+      }
+    };
+    img.src = annotatedFrameUrl;
+  };
+
+  // High Performance React State Updater: Throttled to max 4-5 updates/sec to eliminate UI lag & freezing
+  const updateTelemetryThrottled = (payload) => {
+    const now = Date.now();
+    if (now - lastStateUpdateTimeRef.current > 200) {
+      lastStateUpdateTimeRef.current = now;
+      setTelemetry({
+        fps: payload.fps || 0,
+        inference_ms: payload.inference_ms || 0,
+        vehicles_count: payload.counts?.total_vehicles || 0,
+        violations_count: payload.counts?.violations_in_frame || 0,
+        counts: payload.counts || {}
+      });
+      setActiveVehicles(payload.vehicles || []);
+      if (payload.violations && payload.violations.length > 0) {
+        setLatestViolations(prev => [...payload.violations, ...prev].slice(0, 8));
+        playAlertSound();
+      }
+    }
   };
 
   const getWsLiveUrl = () => {
@@ -151,7 +204,12 @@ export default function LiveDetection() {
 
   // --- MODE 1: MOBILE VIEWER MODE (Watch phone camera live on laptop screen) ---
   const startMobileViewer = () => {
-    stopStream();
+    // Prevent reconnect storms if socket is already healthy and active
+    if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) {
+      return;
+    }
+
+    isIntentionalCloseRef.current = false;
     setStreamMode('phone');
     streamModeRef.current = 'phone';
     setIsStreaming(true);
@@ -190,12 +248,12 @@ export default function LiveDetection() {
         }
 
         if (payload.status === "mobile_stream_stopped") {
-          // Grace period: do not flip UI instantly to avoid flickering
+          // Generous 5-second grace period: prevents UI flipping during transient Wi-Fi packet drops
           if (!disconnectTimerRef.current) {
             disconnectTimerRef.current = setTimeout(() => {
               setPhoneConnected(false);
               disconnectTimerRef.current = null;
-            }, 3500);
+            }, 5000);
           }
           return;
         }
@@ -207,33 +265,14 @@ export default function LiveDetection() {
         }
         setPhoneConnected(true);
 
-        setTelemetry({
-          fps: payload.fps,
-          inference_ms: payload.inference_ms,
-          vehicles_count: payload.counts?.total_vehicles || 0,
-          violations_count: payload.counts?.violations_in_frame || 0,
-          counts: payload.counts || {}
-        });
-
-        setActiveVehicles(payload.vehicles || []);
-
-        if (payload.violations && payload.violations.length > 0) {
-          setLatestViolations(prev => [...payload.violations, ...prev].slice(0, 8));
-          playAlertSound();
+        // Smooth zero-flicker canvas drawing
+        if (payload.annotated_frame) {
+          renderFrameToCanvas(payload.annotated_frame);
         }
 
-        if (payload.annotated_frame && canvasRef.current) {
-          const img = new Image();
-          img.onload = () => {
-            const ctx = canvasRef.current?.getContext('2d');
-            if (ctx && canvasRef.current) {
-              canvasRef.current.width = img.width;
-              canvasRef.current.height = img.height;
-              ctx.drawImage(img, 0, 0);
-            }
-          };
-          img.src = payload.annotated_frame;
-        }
+        // Throttled UI state updates
+        updateTelemetryThrottled(payload);
+
       } catch (err) {
         console.error("Frame message parse error:", err);
       }
@@ -244,12 +283,15 @@ export default function LiveDetection() {
         clearInterval(pingTimerRef.current);
         pingTimerRef.current = null;
       }
+      if (isIntentionalCloseRef.current) {
+        return;
+      }
       // Debounced disconnect so momentary drops do not cause violent UI flapping
       if (!disconnectTimerRef.current) {
         disconnectTimerRef.current = setTimeout(() => {
           setPhoneConnected(false);
           disconnectTimerRef.current = null;
-        }, 3500);
+        }, 5000);
       }
       if (isStreamingRef.current && streamModeRef.current === 'phone') {
         if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
@@ -257,7 +299,7 @@ export default function LiveDetection() {
           if (isStreamingRef.current && streamModeRef.current === 'phone') {
             startMobileViewer();
           }
-        }, 1500);
+        }, 2500);
       }
     };
 
@@ -309,33 +351,11 @@ export default function LiveDetection() {
         const payload = JSON.parse(event.data);
         if (payload.error) return;
 
-        setTelemetry({
-          fps: payload.fps,
-          inference_ms: payload.inference_ms,
-          vehicles_count: payload.counts?.total_vehicles || 0,
-          violations_count: payload.counts?.violations_in_frame || 0,
-          counts: payload.counts || {}
-        });
-
-        setActiveVehicles(payload.vehicles || []);
-
-        if (payload.violations && payload.violations.length > 0) {
-          setLatestViolations(prev => [...payload.violations, ...prev].slice(0, 8));
-          playAlertSound();
+        if (payload.annotated_frame) {
+          renderFrameToCanvas(payload.annotated_frame);
         }
 
-        if (payload.annotated_frame && canvasRef.current) {
-          const img = new Image();
-          img.onload = () => {
-            const ctx = canvasRef.current?.getContext('2d');
-            if (ctx && canvasRef.current) {
-              canvasRef.current.width = img.width;
-              canvasRef.current.height = img.height;
-              ctx.drawImage(img, 0, 0);
-            }
-          };
-          img.src = payload.annotated_frame;
-        }
+        updateTelemetryThrottled(payload);
 
         if (isStreamingRef.current && streamModeRef.current === 'webcam') {
           animFrameIdRef.current = requestAnimationFrame(sendWebcamFrameLoop);
@@ -457,33 +477,10 @@ export default function LiveDetection() {
     socket.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
-        setTelemetry({
-          fps: payload.fps,
-          inference_ms: payload.inference_ms,
-          vehicles_count: payload.counts?.total_vehicles || 0,
-          violations_count: payload.counts?.violations_in_frame || 0,
-          counts: payload.counts || {}
-        });
-
-        setActiveVehicles(payload.vehicles || []);
-
-        if (payload.violations && payload.violations.length > 0) {
-          setLatestViolations(prev => [...payload.violations, ...prev].slice(0, 8));
-          playAlertSound();
+        if (payload.annotated_frame) {
+          renderFrameToCanvas(payload.annotated_frame);
         }
-
-        if (payload.annotated_frame && canvasRef.current) {
-          const img = new Image();
-          img.onload = () => {
-            const ctx = canvasRef.current?.getContext('2d');
-            if (ctx && canvasRef.current) {
-              canvasRef.current.width = img.width;
-              canvasRef.current.height = img.height;
-              ctx.drawImage(img, 0, 0);
-            }
-          };
-          img.src = payload.annotated_frame;
-        }
+        updateTelemetryThrottled(payload);
       } catch (err) {}
     };
 
@@ -491,6 +488,7 @@ export default function LiveDetection() {
   };
 
   const stopStream = () => {
+    isIntentionalCloseRef.current = true;
     setIsStreaming(false);
     isStreamingRef.current = false;
     setPhoneConnected(false);

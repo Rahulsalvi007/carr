@@ -257,9 +257,9 @@ export default function MobileCam({ onBackToDashboard }) {
 
     const now = Date.now();
 
-    // Flow control: If waiting for previous frame, apply 1000ms safety timeout
+    // Flow control: If waiting for previous frame, apply 350ms safety timeout to prevent stalling
     if (isWaitingForResponseRef.current) {
-      if (now - lastFrameTimeRef.current > 1000) {
+      if (now - lastFrameTimeRef.current > 350) {
         isWaitingForResponseRef.current = false;
       } else {
         animFrameRef.current = requestAnimationFrame(streamLoop);
@@ -267,8 +267,8 @@ export default function MobileCam({ onBackToDashboard }) {
       }
     }
 
-    // Pacing: ~25 FPS (40ms gap) to optimize bandwidth & prevent mobile thermal throttling
-    if (now - lastSendTimeRef.current < 40) {
+    // Pacing: ~20 FPS (50ms gap) to optimize Wi-Fi bandwidth & match CPU inference speed
+    if (now - lastSendTimeRef.current < 50) {
       animFrameRef.current = requestAnimationFrame(streamLoop);
       return;
     }
@@ -305,10 +305,14 @@ export default function MobileCam({ onBackToDashboard }) {
       }
       const ctx = offCanvas.getContext('2d');
       ctx.drawImage(videoRef.current, 0, 0, targetW, targetH);
-      const b64 = offCanvas.toDataURL('image/jpeg', 0.55);
+      const b64 = offCanvas.toDataURL('image/jpeg', 0.52);
 
       try {
-        wsRef.current.send(JSON.stringify({ image: b64, source: "mobile_phone" }));
+        wsRef.current.send(JSON.stringify({
+          image: b64,
+          source: "mobile_phone",
+          need_preview: viewMode === 'ai'
+        }));
       } catch (err) {
         isWaitingForResponseRef.current = false;
       }
