@@ -72,5 +72,6 @@ class DetectionRecord(Base):
     bbox_json = Column(String(200), nullable=True) # "[x1, y1, x2, y2]"
     timestamp = Column(DateTime, default=datetime.datetime.utcnow)
     source_type = Column(String(30), default="LIVE") # LIVE, VIDEO, IMAGE
+    notes = Column(Text, nullable=True)
 
     vehicle = relationship("Vehicle", back_populates="detections")

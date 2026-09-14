@@ -1,10 +1,20 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException, Body
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List
+from pydantic import BaseModel, Field
 from backend.app.database.connection import get_db
 from backend.app.database import crud
 
 router = APIRouter(prefix="", tags=["Vehicles & Detections"])
+
+class DetectionUpdateRequest(BaseModel):
+    vehicle_type: Optional[str] = None
+    confidence: Optional[float] = Field(None, ge=0.0, le=1.0)
+    source_type: Optional[str] = None
+    notes: Optional[str] = None
+
+class BulkDeleteRequest(BaseModel):
+    ids: List[int]
 
 @router.get("/vehicles")
 def list_vehicles(
@@ -59,7 +69,8 @@ def list_detections(
             "confidence": r.confidence,
             "bbox": r.bbox_json,
             "timestamp": r.timestamp.isoformat() if r.timestamp else None,
-            "source_type": r.source_type
+            "source_type": r.source_type,
+            "notes": r.notes
         })
 
     return {
@@ -67,4 +78,92 @@ def list_detections(
         "skip": skip,
         "limit": limit,
         "detections": data
+    }
+
+@router.delete("/detections/clear")
+def clear_all_detections(
+    vehicle_type: Optional[str] = Query(None),
+    source_type: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    count = crud.clear_all_detections(db=db, vehicle_type=vehicle_type, source_type=source_type)
+    return {
+        "status": "success",
+        "deleted_count": count,
+        "message": f"Cleared {count} detection records"
+    }
+
+@router.post("/detections/bulk-delete")
+def bulk_delete_detections(
+    payload: BulkDeleteRequest,
+    db: Session = Depends(get_db)
+):
+    count = crud.bulk_delete_detections(db=db, ids=payload.ids)
+    return {
+        "status": "success",
+        "deleted_count": count,
+        "message": f"{count} detection records deleted successfully"
+    }
+
+@router.get("/detections/{id}")
+def get_detection(
+    id: int,
+    db: Session = Depends(get_db)
+):
+    rec = crud.get_detection_by_id(db=db, detection_id=id)
+    if not rec:
+        raise HTTPException(status_code=404, detail="Detection record not found")
+    return {
+        "id": rec.id,
+        "vehicle_id": rec.vehicle_id,
+        "vehicle_type": rec.vehicle_type,
+        "confidence": rec.confidence,
+        "bbox": rec.bbox_json,
+        "timestamp": rec.timestamp.isoformat() if rec.timestamp else None,
+        "source_type": rec.source_type,
+        "notes": rec.notes
+    }
+
+@router.patch("/detections/{id}")
+def update_detection(
+    id: int,
+    payload: DetectionUpdateRequest,
+    db: Session = Depends(get_db)
+):
+    rec = crud.update_detection(
+        db=db,
+        detection_id=id,
+        vehicle_type=payload.vehicle_type,
+        confidence=payload.confidence,
+        source_type=payload.source_type,
+        notes=payload.notes
+    )
+    if not rec:
+        raise HTTPException(status_code=404, detail="Detection record not found")
+    return {
+        "status": "success",
+        "message": f"Detection record #{id} updated successfully",
+        "detection": {
+            "id": rec.id,
+            "vehicle_id": rec.vehicle_id,
+            "vehicle_type": rec.vehicle_type,
+            "confidence": rec.confidence,
+            "bbox": rec.bbox_json,
+            "timestamp": rec.timestamp.isoformat() if rec.timestamp else None,
+            "source_type": rec.source_type,
+            "notes": rec.notes
+        }
+    }
+
+@router.delete("/detections/{id}")
+def delete_detection(
+    id: int,
+    db: Session = Depends(get_db)
+):
+    success = crud.delete_detection(db=db, detection_id=id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Detection record not found")
+    return {
+        "status": "success",
+        "message": f"Detection record #{id} deleted successfully"
     }

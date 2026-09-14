@@ -58,7 +58,8 @@ def log_detection(
     confidence: float,
     bbox: List[int],
     frame_id: Optional[int] = None,
-    source_type: str = "LIVE"
+    source_type: str = "LIVE",
+    notes: Optional[str] = None
 ) -> DetectionRecord:
     record = DetectionRecord(
         vehicle_id=vehicle_id,
@@ -67,7 +68,8 @@ def log_detection(
         confidence=confidence,
         bbox_json=json.dumps(bbox),
         timestamp=datetime.datetime.utcnow(),
-        source_type=source_type
+        source_type=source_type,
+        notes=notes
     )
     db.add(record)
     db.commit()
@@ -202,6 +204,64 @@ def get_detections_history(
     total = query.count()
     records = query.order_by(desc(DetectionRecord.timestamp)).offset(skip).limit(limit).all()
     return records, total
+
+def get_detection_by_id(db: Session, detection_id: int) -> Optional[DetectionRecord]:
+    return db.query(DetectionRecord).filter(DetectionRecord.id == detection_id).first()
+
+def update_detection(
+    db: Session,
+    detection_id: int,
+    vehicle_type: Optional[str] = None,
+    confidence: Optional[float] = None,
+    source_type: Optional[str] = None,
+    notes: Optional[str] = None,
+    bbox: Optional[List[int]] = None
+) -> Optional[DetectionRecord]:
+    rec = db.query(DetectionRecord).filter(DetectionRecord.id == detection_id).first()
+    if not rec:
+        return None
+    if vehicle_type is not None:
+        rec.vehicle_type = vehicle_type
+    if confidence is not None:
+        rec.confidence = float(confidence)
+    if source_type is not None:
+        rec.source_type = source_type
+    if notes is not None:
+        rec.notes = notes
+    if bbox is not None:
+        rec.bbox_json = json.dumps(bbox)
+    db.commit()
+    db.refresh(rec)
+    return rec
+
+def delete_detection(db: Session, detection_id: int) -> bool:
+    rec = db.query(DetectionRecord).filter(DetectionRecord.id == detection_id).first()
+    if rec:
+        db.delete(rec)
+        db.commit()
+        return True
+    return False
+
+def bulk_delete_detections(db: Session, ids: List[int]) -> int:
+    if not ids:
+        return 0
+    deleted_count = db.query(DetectionRecord).filter(DetectionRecord.id.in_(ids)).delete(synchronize_session=False)
+    db.commit()
+    return deleted_count
+
+def clear_all_detections(
+    db: Session,
+    vehicle_type: Optional[str] = None,
+    source_type: Optional[str] = None
+) -> int:
+    query = db.query(DetectionRecord)
+    if vehicle_type and vehicle_type.upper() != "ALL":
+        query = query.filter(DetectionRecord.vehicle_type == vehicle_type)
+    if source_type and source_type.upper() != "ALL":
+        query = query.filter(DetectionRecord.source_type == source_type)
+    deleted_count = query.delete(synchronize_session=False)
+    db.commit()
+    return deleted_count
 
 def get_analytics_summary(db: Session, days: int = 7) -> Dict[str, Any]:
     since = datetime.datetime.utcnow() - datetime.timedelta(days=days)

@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from backend.app.config import settings
 
@@ -24,3 +24,11 @@ def get_db():
 def init_db():
     import backend.app.database.models # ensure models are registered
     Base.metadata.create_all(bind=engine)
+    # Safe migration: ensure 'notes' column exists in detections table
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE detections ADD COLUMN notes TEXT"))
+            conn.commit()
+    except Exception:
+        pass # Column already exists
+

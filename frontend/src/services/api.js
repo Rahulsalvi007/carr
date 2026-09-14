@@ -18,6 +18,11 @@ export const updateViolationStatus = (id, status) => api.patch(`/violations/${id
 
 export const getVehicles = (params) => api.get('/vehicles', { params });
 export const getDetectionsHistory = (params) => api.get('/detections', { params });
+export const getDetection = (id) => api.get(`/detections/${id}`);
+export const updateDetection = (id, data) => api.patch(`/detections/${id}`, data);
+export const deleteDetection = (id) => api.delete(`/detections/${id}`);
+export const bulkDeleteDetections = (ids) => api.post('/detections/bulk-delete', { ids });
+export const clearAllDetections = (params = {}) => api.delete('/detections/clear', { params });
 
 export const detectImage = (formData, params = {}) => api.post('/detect/image', formData, {
   params,
