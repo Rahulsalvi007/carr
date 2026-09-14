@@ -93,7 +93,7 @@ export default function Vehicles() {
       {/* Vehicles Table */}
       <div className="pro-card rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[700px]">
             <thead className="bg-zinc-50 text-zinc-600 uppercase tracking-wider font-semibold border-b border-zinc-200 text-[11px]">
               <tr>
                 <th className="px-5 py-3.5">Track ID</th>

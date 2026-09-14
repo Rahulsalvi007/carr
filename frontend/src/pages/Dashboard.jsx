@@ -93,7 +93,7 @@ export default function Dashboard({ setActiveTab }) {
       </div>
 
       {/* Top Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2.5 sm:gap-3">
         <StatCard
           title="Total Vehicles"
           value={summary.total_vehicles || 0}
@@ -296,10 +296,10 @@ export default function Dashboard({ setActiveTab }) {
                 <div
                   key={v.id}
                   onClick={() => setSelectedViolation(v)}
-                  className="py-3 flex items-center justify-between hover:bg-zinc-50 px-2 rounded-xl cursor-pointer transition-colors"
+                  className="py-3 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-zinc-50 px-2 rounded-xl cursor-pointer transition-colors gap-2"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-red-50 text-red-600 border border-red-200">
+                    <div className="p-2 rounded-xl bg-red-50 text-red-600 border border-red-200 shrink-0">
                       <AlertTriangle size={15} />
                     </div>
                     <div>
@@ -315,7 +315,7 @@ export default function Dashboard({ setActiveTab }) {
                     </div>
                   </div>
 
-                  <div className="text-right flex flex-col items-end gap-1">
+                  <div className="flex items-center sm:flex-col sm:items-end justify-between sm:justify-center gap-1.5 pt-1 sm:pt-0 border-t sm:border-t-0 border-zinc-100">
                     <span className="text-[10px] text-zinc-400 font-mono">
                       {v.timestamp ? new Date(v.timestamp).toLocaleTimeString() : ''}
                     </span>

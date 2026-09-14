@@ -65,26 +65,26 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen, activeTab, setA
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-zinc-200 text-zinc-900 px-4 lg:px-7 py-2.5 flex items-center justify-between shadow-xs">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-zinc-200 text-zinc-900 px-3 sm:px-4 lg:px-7 py-2.5 flex items-center justify-between shadow-xs">
       {/* Brand / Logo */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <button
           onClick={onToggleSidebar}
-          className="lg:hidden p-2 rounded-lg bg-zinc-100 border border-zinc-200 text-zinc-700 hover:text-black transition-colors"
+          className="lg:hidden p-1.5 sm:p-2 rounded-lg bg-zinc-100 border border-zinc-200 text-zinc-700 hover:text-black transition-colors"
         >
           {isSidebarOpen ? <X size={18} /> : <Menu size={18} />}
         </button>
 
-        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActiveTab('dashboard')}>
-          <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center text-white font-black shadow-xs group-hover:bg-zinc-800 transition-colors">
+        <div className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group" onClick={() => setActiveTab('dashboard')}>
+          <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center text-white font-black shadow-xs group-hover:bg-zinc-800 transition-colors shrink-0">
             <ShieldCheck className="text-white" size={18} strokeWidth={2.5} />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <span className="font-bold text-sm tracking-tight text-zinc-950">
                 ROADGUARD
               </span>
-              <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-700 border border-zinc-200">
+              <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-700 border border-zinc-200 hidden xs:inline">
                 v3.0 AI
               </span>
             </div>

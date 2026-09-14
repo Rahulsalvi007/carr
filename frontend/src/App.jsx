@@ -102,7 +102,7 @@ export default function App() {
         <main className={`flex-1 overflow-y-auto ${
           activeTab === 'live'
             ? 'p-2 sm:p-3 lg:p-4 w-full max-w-full'
-            : 'p-4 lg:p-8 max-w-7xl mx-auto w-full'
+            : 'p-3 sm:p-5 lg:p-8 max-w-7xl mx-auto w-full'
         }`}>
           {renderContent()}
         </main>

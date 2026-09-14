@@ -899,17 +899,17 @@ export default function LiveDetection() {
       <div className="pro-card p-3 rounded-xl space-y-2.5 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* AI Engine Selector */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5 shrink-0">
               <SlidersHorizontal size={13} className="text-zinc-600" /> AI Engine:
             </span>
-            <div className="bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 flex items-center gap-1">
+            <div className="bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 flex flex-wrap items-center gap-1">
               <button
                 onClick={() => {
                   setAiMode('combined');
                   aiModeRef.current = 'combined';
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                   aiMode === 'combined'
                     ? 'bg-zinc-950 text-white shadow-sm'
                     : 'text-zinc-600 hover:text-zinc-950'
@@ -917,7 +917,7 @@ export default function LiveDetection() {
                 title="Dual-Layer AI: 80 COCO Objects + Road Traffic & Plates"
               >
                 <Sparkles size={13} className={aiMode === 'combined' ? 'text-white' : 'text-zinc-500'} />
-                <span>Dual AI (Combined)</span>
+                <span>Dual AI</span>
               </button>
 
               <button
@@ -925,7 +925,7 @@ export default function LiveDetection() {
                   setAiMode('objects');
                   aiModeRef.current = 'objects';
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                   aiMode === 'objects'
                     ? 'bg-zinc-950 text-white shadow-sm'
                     : 'text-zinc-600 hover:text-zinc-950'
@@ -933,7 +933,7 @@ export default function LiveDetection() {
                 title="General Object Detection (People, Electronics, Animals, etc.)"
               >
                 <Box size={13} className={aiMode === 'objects' ? 'text-white' : 'text-zinc-500'} />
-                <span>General Objects (80)</span>
+                <span>Objects (80)</span>
               </button>
 
               <button
@@ -941,7 +941,7 @@ export default function LiveDetection() {
                   setAiMode('traffic');
                   aiModeRef.current = 'traffic';
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                   aiMode === 'traffic'
                     ? 'bg-zinc-950 text-white shadow-sm'
                     : 'text-zinc-600 hover:text-zinc-950'
@@ -949,13 +949,13 @@ export default function LiveDetection() {
                 title="Dedicated Road Safety AI (Vehicles, Helmets, Plates)"
               >
                 <Car size={13} className={aiMode === 'traffic' ? 'text-white' : 'text-zinc-500'} />
-                <span>Traffic AI Only</span>
+                <span>Traffic AI</span>
               </button>
             </div>
           </div>
 
           {/* Real-time Search Input */}
-          <div className="relative flex-1 max-w-sm">
+          <div className="relative flex-1 w-full md:max-w-sm">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
             <input
               type="text"
@@ -1035,8 +1035,8 @@ export default function LiveDetection() {
             isFullscreen
               ? 'fixed inset-0 z-[99999] w-screen h-screen bg-black flex items-center justify-center p-0 m-0 border-0 rounded-none overflow-hidden select-none ' + (!showHud ? 'cursor-none' : '')
               : isTheaterMode
-              ? 'col-span-full rounded-xl bg-black border border-zinc-800 overflow-hidden relative shadow-lg flex flex-col items-center justify-center min-h-[75vh] transition-all duration-200'
-              : (isSidePanelOpen ? 'lg:col-span-2' : 'col-span-full') + ' rounded-xl bg-black border border-zinc-800 overflow-hidden relative shadow-lg flex flex-col items-center justify-center min-h-[520px] transition-all duration-200'
+              ? 'col-span-full rounded-xl bg-black border border-zinc-800 overflow-hidden relative shadow-lg flex flex-col items-center justify-center min-h-[50vh] sm:min-h-[75vh] transition-all duration-200'
+              : (isSidePanelOpen ? 'lg:col-span-2' : 'col-span-full') + ' rounded-xl bg-black border border-zinc-800 overflow-hidden relative shadow-lg flex flex-col items-center justify-center min-h-[280px] sm:min-h-[380px] lg:min-h-[520px] transition-all duration-200'
           }`}
         >
           {/* Subtle on-screen indicator when entering Fullscreen */}

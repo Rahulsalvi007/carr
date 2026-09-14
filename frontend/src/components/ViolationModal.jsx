@@ -42,12 +42,12 @@ export default function ViolationModal({ violation, onClose, onStatusUpdated, on
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="bg-white border border-zinc-200 rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 bg-zinc-50/70">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-zinc-200 bg-zinc-50/70">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-black text-white">
+            <div className="p-2 rounded-xl bg-black text-white shrink-0">
               <ShieldAlert size={18} />
             </div>
             <div>
@@ -64,9 +64,9 @@ export default function ViolationModal({ violation, onClose, onStatusUpdated, on
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 max-h-[85vh] overflow-y-auto">
           {/* Snapshot Image with fallback */}
-          <div className="relative rounded-xl overflow-hidden bg-zinc-100 border border-zinc-200 flex items-center justify-center min-h-[220px]">
+          <div className="relative rounded-xl overflow-hidden bg-zinc-100 border border-zinc-200 flex items-center justify-center min-h-[160px] sm:min-h-[220px]">
             {violation.snapshot_url ? (
               <img
                 src={violation.snapshot_url}

@@ -4,6 +4,7 @@ from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, and_
 from backend.app.database.models import Vehicle, NumberPlate, HelmetDetection, Violation, DetectionRecord
+from backend.app.config import settings
 
 def get_or_create_vehicle(
     db: Session,
@@ -182,6 +183,13 @@ def update_violation_status(db: Session, violation_id: int, new_status: str) -> 
 def delete_violation(db: Session, violation_id: int) -> bool:
     vio = db.query(Violation).filter(Violation.id == violation_id).first()
     if vio:
+        if vio.snapshot_path:
+            try:
+                snap_file = settings.VIOLATIONS_PATH / vio.snapshot_path
+                if snap_file.exists():
+                    snap_file.unlink()
+            except Exception:
+                pass
         db.delete(vio)
         db.commit()
         return True
@@ -190,6 +198,16 @@ def delete_violation(db: Session, violation_id: int) -> bool:
 def bulk_delete_violations(db: Session, ids: List[int]) -> int:
     if not ids:
         return 0
+    # Clean up physical snapshots for deleted violations
+    viols = db.query(Violation).filter(Violation.id.in_(ids)).all()
+    for v in viols:
+        if v.snapshot_path:
+            try:
+                snap_file = settings.VIOLATIONS_PATH / v.snapshot_path
+                if snap_file.exists():
+                    snap_file.unlink()
+            except Exception:
+                pass
     deleted_count = db.query(Violation).filter(Violation.id.in_(ids)).delete(synchronize_session=False)
     db.commit()
     return deleted_count
@@ -314,8 +332,9 @@ def get_analytics_summary(db: Session, days: int = 7) -> Dict[str, Any]:
     for i in range(24):
         hourly_distribution[f"{i:02d}:00"] = 0
     for d in detections_24h:
-        hour_str = d.timestamp.strftime("%H:00")
-        hourly_distribution[hour_str] = hourly_distribution.get(hour_str, 0) + 1
+        if d.timestamp:
+            hour_str = d.timestamp.strftime("%H:00")
+            hourly_distribution[hour_str] = hourly_distribution.get(hour_str, 0) + 1
 
     hourly_data = [{"hour": k, "count": v} for k, v in hourly_distribution.items()]
 

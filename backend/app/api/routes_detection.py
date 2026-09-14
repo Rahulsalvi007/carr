@@ -294,6 +294,11 @@ async def detect_video(
     finally:
         cap.release()
         out_writer.release()
+        try:
+            if temp_in_path.exists():
+                temp_in_path.unlink()
+        except Exception:
+            pass
 
     duration_sec = round(time.time() - start_time, 2)
     avg_fps = round(processed_count / duration_sec, 1) if duration_sec > 0 else 0
