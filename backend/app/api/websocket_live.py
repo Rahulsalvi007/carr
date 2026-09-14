@@ -30,10 +30,16 @@ def broadcast_frame_to_viewers(payload_str: str, exclude_ws: WebSocket = None):
             except asyncio.QueueFull:
                 pass
 
-def sync_save_detections(result):
+# Cache to prevent duplicate database spam while ensuring every tracked vehicle is recorded
+track_log_cache: dict = {}
+plate_logged_cache: set = set()
+
+def sync_save_detections(result, source: str = "camera", frame_id: int = None):
+    """Persists vehicle detection records, license plates, helmet checks, and violations to database."""
     db = SessionLocal()
     try:
-        for v in result["vehicles"]:
+        source_type = "LIVE_MOBILE" if source == "mobile_phone" else "LIVE_CAM"
+        for v in result.get("vehicles", []):
             veh_record = crud.get_or_create_vehicle(
                 db=db,
                 track_id=v.get("track_id"),
@@ -44,17 +50,43 @@ def sync_save_detections(result):
                 plate_number=v["plate_info"].get("plate_number") if v["plate_info"].get("detected") else None
             )
 
-            p_info = v["plate_info"]
-            if p_info.get("detected") and p_info.get("plate_number") not in ["Reading...", "Uncertain", "Not Detected"]:
+            p_info = v.get("plate_info", {})
+            plate_num = p_info.get("plate_number") if p_info.get("detected") else None
+            is_valid_plate = plate_num and plate_num not in ["Reading...", "Uncertain", "Not Detected"]
+
+            # Construct audit trail notes
+            note_parts = []
+            if is_valid_plate:
+                note_parts.append(f"Plate: {plate_num}")
+            if v.get("power_type") and v.get("power_type") != "Unknown":
+                note_parts.append(f"EV: {v['power_type']}")
+            h_info = v.get("helmet_info")
+            if h_info and h_info.get("rider_detected"):
+                note_parts.append(f"Helmet: {h_info.get('helmet_status')}")
+            if v.get("track_id") is not None:
+                note_parts.append(f"Track #{v['track_id']}")
+
+            # Save Detection Record into History Table
+            crud.log_detection(
+                db=db,
+                vehicle_id=veh_record.id,
+                vehicle_type=v["vehicle_type"],
+                confidence=v["confidence"],
+                bbox=v["bbox"],
+                frame_id=frame_id,
+                source_type=source_type,
+                notes=" | ".join(note_parts) if note_parts else "Live Stream Vehicle"
+            )
+
+            if is_valid_plate:
                 crud.log_number_plate(
                     db=db,
                     vehicle_id=veh_record.id,
-                    plate_number=p_info.get("plate_number", "Uncertain"),
+                    plate_number=plate_num,
                     ocr_confidence=p_info.get("ocr_confidence", 0.0),
                     raw_text=p_info.get("raw_text")
                 )
 
-            h_info = v["helmet_info"]
             if h_info and h_info.get("rider_detected"):
                 crud.log_helmet_detection(
                     db=db,
@@ -63,7 +95,7 @@ def sync_save_detections(result):
                     confidence=h_info.get("confidence")
                 )
 
-        for viol in result["violations"]:
+        for viol in result.get("violations", []):
             crud.create_violation(
                 db=db,
                 violation_type=viol["violation_type"],
@@ -73,8 +105,8 @@ def sync_save_detections(result):
                 plate_number=viol.get("plate_number"),
                 notes=viol.get("notes")
             )
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[WebSocket] Database sync error: {e}")
     finally:
         db.close()
 
@@ -188,10 +220,34 @@ async def websocket_live_endpoint(websocket: WebSocket):
             )
             inference_time = round((time.time() - t_start) * 1000, 1)
 
-            # Persist detections and violations in background without blocking video stream
-            has_violations = len(result["violations"]) > 0
-            if has_violations or frame_counter % 30 == 0:
-                asyncio.create_task(asyncio.to_thread(sync_save_detections, result))
+            # Intelligent History Persistence for Live Streams:
+            # Guarantees every detected car/vehicle is saved to history without spamming duplicates
+            vehicles_to_save = []
+            now_t = time.time()
+            for v in result.get("vehicles", []):
+                t_id = v.get("track_id")
+                k = str(t_id) if t_id is not None else f"{v['vehicle_type']}_{int(v['bbox'][0]/60)}_{int(v['bbox'][1]/60)}"
+                last_logged = track_log_cache.get(k, 0)
+                p_text = v.get("plate_info", {}).get("plate_number") if v.get("plate_info", {}).get("detected") else None
+                has_new_plate = p_text and p_text not in ["Reading...", "Uncertain", "Not Detected"] and k not in plate_logged_cache
+                if (now_t - last_logged > 8.0) or has_new_plate:
+                    track_log_cache[k] = now_t
+                    if has_new_plate:
+                        plate_logged_cache.add(k)
+                    vehicles_to_save.append(v)
+
+            has_violations = len(result.get("violations", [])) > 0
+            if vehicles_to_save or has_violations:
+                save_data = {
+                    "vehicles": vehicles_to_save,
+                    "violations": result.get("violations", [])
+                }
+                asyncio.create_task(asyncio.to_thread(
+                    sync_save_detections,
+                    save_data,
+                    data.get("source", "camera"),
+                    frame_counter
+                ))
 
             # Encode annotated frame to base64
             annotated_b64 = pipeline.frame_to_base64(result["annotated_frame"], quality=65)
@@ -211,6 +267,11 @@ async def websocket_live_endpoint(websocket: WebSocket):
                 for v in result["vehicles"]
             ]
 
+            # Detect frame orientation (landscape if width >= height)
+            f_height, f_width = frame.shape[:2]
+            frame_orientation = data.get("orientation") or ("landscape" if f_width >= f_height else "portrait")
+            frame_aspect = data.get("aspect_ratio") or round(f_width / max(1, f_height), 3)
+
             # Full payload with video frame for viewers (laptop monitor)
             viewer_payload = {
                 "frame_id": frame_counter,
@@ -218,6 +279,8 @@ async def websocket_live_endpoint(websocket: WebSocket):
                 "fps": round(1000.0 / max(1.0, inference_time), 1),
                 "counts": result["counts"],
                 "source": data.get("source", "camera"),
+                "orientation": frame_orientation,
+                "aspect_ratio": frame_aspect,
                 "vehicles": vehicles_data,
                 "violations": result["violations"],
                 "annotated_frame": f"data:image/jpeg;base64,{annotated_b64}"
@@ -235,6 +298,8 @@ async def websocket_live_endpoint(websocket: WebSocket):
                         "fps": round(1000.0 / max(1.0, inference_time), 1),
                         "counts": result["counts"],
                         "source": "mobile_phone",
+                        "orientation": frame_orientation,
+                        "aspect_ratio": frame_aspect,
                         "vehicles": vehicles_data,
                         "violations": result["violations"]
                     }

@@ -62,12 +62,16 @@ def list_detections(
 
     data = []
     for r in records:
+        plate = r.vehicle.plate_number if r.vehicle else None
+        power = r.vehicle.power_type if r.vehicle else None
         data.append({
             "id": r.id,
             "vehicle_id": r.vehicle_id,
             "vehicle_type": r.vehicle_type,
             "confidence": r.confidence,
             "bbox": r.bbox_json,
+            "plate_number": plate,
+            "power_type": power,
             "timestamp": r.timestamp.isoformat() if r.timestamp else None,
             "source_type": r.source_type,
             "notes": r.notes

@@ -53,6 +53,8 @@ export default function LiveDetection() {
   const [phoneConnected, setPhoneConnected] = useState(false);
   const [videoDevices, setVideoDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
+  const [streamOrientation, setStreamOrientation] = useState('landscape'); // 'landscape' or 'portrait'
+  const [streamAspect, setStreamAspect] = useState(16 / 9);
   const lastFrameTimeRef = useRef(Date.now());
 
   // Remote 4G / Public Tunnel Connection state
@@ -178,7 +180,7 @@ export default function LiveDetection() {
   };
 
   // Zero-Flicker Hardware Canvas Painter: Only updates canvas dimensions when source dimensions actually change
-  const renderFrameToCanvas = (annotatedFrameUrl) => {
+  const renderFrameToCanvas = (annotatedFrameUrl, incomingOrientation = null, incomingAspect = null) => {
     if (!annotatedFrameUrl || !canvasRef.current) return;
     const canvas = canvasRef.current;
     const img = new Image();
@@ -188,6 +190,19 @@ export default function LiveDetection() {
         canvas.width = img.width;
         canvas.height = img.height;
       }
+      // Detect whether stream is in landscape or portrait
+      const isLand = incomingOrientation === 'landscape'
+        ? true
+        : incomingOrientation === 'portrait'
+        ? false
+        : img.width >= img.height;
+      const detectedOrientation = isLand ? 'landscape' : 'portrait';
+      if (streamOrientation !== detectedOrientation) {
+        setStreamOrientation(detectedOrientation);
+      }
+      const aspectVal = incomingAspect || Number((img.width / Math.max(1, img.height)).toFixed(3));
+      setStreamAspect(aspectVal);
+
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(img, 0, 0);
@@ -297,7 +312,7 @@ export default function LiveDetection() {
 
         // Smooth zero-flicker canvas drawing
         if (payload.annotated_frame) {
-          renderFrameToCanvas(payload.annotated_frame);
+          renderFrameToCanvas(payload.annotated_frame, payload.orientation, payload.aspect_ratio);
         }
 
         // Throttled UI state updates
@@ -382,7 +397,7 @@ export default function LiveDetection() {
         if (payload.error) return;
 
         if (payload.annotated_frame) {
-          renderFrameToCanvas(payload.annotated_frame);
+          renderFrameToCanvas(payload.annotated_frame, payload.orientation, payload.aspect_ratio);
         }
 
         updateTelemetryThrottled(payload);
@@ -520,7 +535,7 @@ export default function LiveDetection() {
       try {
         const payload = JSON.parse(event.data);
         if (payload.annotated_frame) {
-          renderFrameToCanvas(payload.annotated_frame);
+          renderFrameToCanvas(payload.annotated_frame, payload.orientation, payload.aspect_ratio);
         }
         updateTelemetryThrottled(payload);
       } catch (err) {}
@@ -844,6 +859,21 @@ export default function LiveDetection() {
             <span className="hidden sm:inline">{isSidePanelOpen ? "Wide" : "Split"}</span>
           </button>
 
+          {/* Orientation Indicator & Auto-Landscape Sync Badge */}
+          {phoneConnected && streamMode === 'phone' && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-100 border border-zinc-200 text-xs font-mono">
+              <span className={`w-2 h-2 rounded-full ${streamOrientation === 'landscape' ? 'bg-emerald-500' : 'bg-blue-500'}`} />
+              <span className="text-zinc-900 font-semibold">{streamOrientation === 'landscape' ? 'Landscape (16:9)' : 'Portrait (9:16)'}</span>
+              <button
+                onClick={() => setStreamOrientation(prev => prev === 'landscape' ? 'portrait' : 'landscape')}
+                className="ml-1 px-1.5 py-0.5 rounded bg-white hover:bg-zinc-200 border border-zinc-200 text-[10px] text-zinc-700 hover:text-black font-semibold transition-colors shadow-2xs"
+                title="Manually switch between landscape/portrait viewport"
+              >
+                Rotate
+              </button>
+            </div>
+          )}
+
           {/* Fullscreen Button */}
           <button
             onClick={toggleFullscreen}
@@ -877,8 +907,8 @@ export default function LiveDetection() {
             isFullscreen
               ? 'fixed inset-0 z-[99999] w-screen h-screen bg-black flex items-center justify-center p-0 m-0 border-0 rounded-none overflow-hidden select-none ' + (!showHud ? 'cursor-none' : '')
               : isTheaterMode
-              ? 'col-span-full rounded-xl bg-black border border-zinc-800 overflow-hidden relative shadow-lg flex flex-col items-center justify-center min-h-[50vh] sm:min-h-[75vh] transition-all duration-200'
-              : (isSidePanelOpen ? 'lg:col-span-2' : 'col-span-full') + ' rounded-xl bg-black border border-zinc-800 overflow-hidden relative shadow-lg flex flex-col items-center justify-center min-h-[280px] sm:min-h-[380px] lg:min-h-[520px] transition-all duration-200'
+              ? 'col-span-full rounded-xl bg-black border border-zinc-800 overflow-hidden relative shadow-lg flex flex-col items-center justify-center min-h-[50vh] sm:min-h-[75vh] transition-all duration-300'
+              : (isSidePanelOpen ? 'lg:col-span-2' : 'col-span-full') + ` rounded-xl bg-black border border-zinc-800 overflow-hidden relative shadow-lg flex flex-col items-center justify-center transition-all duration-300 ${streamOrientation === 'landscape' ? 'min-h-[300px] sm:min-h-[420px] lg:min-h-[520px]' : 'min-h-[400px] sm:min-h-[540px]'}`
           }`}
         >
           {/* Subtle on-screen indicator when entering Fullscreen */}
@@ -991,22 +1021,25 @@ export default function LiveDetection() {
             }}
           />
 
-          {/* Primary Render Canvas - ZERO BORDER edge-to-edge in Fullscreen */}
+          {/* Primary Render Canvas - ZERO BORDER edge-to-edge in Fullscreen & Full Width Landscape */}
           <canvas
             ref={canvasRef}
             onDoubleClick={toggleFullscreen}
             style={{
               maxHeight: isFullscreen ? '100vh' : isTheaterMode ? 'calc(100vh - 160px)' : '720px',
-              maxWidth: isFullscreen ? '100vw' : '100%',
-              width: isFullscreen ? '100vw' : 'auto',
-              height: isFullscreen ? '100vh' : 'auto',
+              maxWidth: '100%',
+              width: isFullscreen ? '100vw' : streamOrientation === 'landscape' ? '100%' : 'auto',
+              height: isFullscreen ? '100vh' : streamOrientation === 'landscape' ? 'auto' : '100%',
+              aspectRatio: streamAspect ? `${streamAspect}` : 'auto',
               objectFit: isFullscreen ? fitMode : 'contain'
             }}
             className={`${
               isFullscreen
                 ? 'w-screen h-screen rounded-none m-0 p-0 border-0 shadow-none'
-                : 'rounded-xl mx-auto shadow-md'
-            } transition-all duration-200 cursor-pointer ${
+                : streamOrientation === 'landscape'
+                ? 'w-full h-auto max-h-[640px] rounded-xl mx-auto shadow-md object-contain'
+                : 'h-auto max-h-[560px] rounded-xl mx-auto shadow-md object-contain'
+            } transition-all duration-300 cursor-pointer ${
               (streamMode === 'phone' && !phoneConnected) || (streamMode === 'webcam' && !isStreaming)
                 ? 'hidden'
                 : 'block'

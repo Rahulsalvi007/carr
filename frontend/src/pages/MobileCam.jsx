@@ -30,6 +30,16 @@ export default function MobileCam({ onBackToDashboard }) {
   const [networkInfo, setNetworkInfo] = useState(null);
   const [httpSecurityBlocked, setHttpSecurityBlocked] = useState(false);
   const [snapCount, setSnapCount] = useState(0);
+  const [isLandscape, setIsLandscape] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    if (window.screen?.orientation?.type) {
+      return window.screen.orientation.type.startsWith('landscape');
+    }
+    if (typeof window.orientation !== 'undefined') {
+      return Math.abs(window.orientation) === 90;
+    }
+    return window.innerWidth > window.innerHeight;
+  });
 
   // Remote 4G / Public Tunnel Connection States
   const [remoteServerUrl, setRemoteServerUrl] = useState(() => {
@@ -60,6 +70,34 @@ export default function MobileCam({ onBackToDashboard }) {
   const lastSendTimeRef = useRef(0);
   const pingIntervalRef = useRef(null);
   const reconnectTimerRef = useRef(null);
+
+  useEffect(() => {
+    const handleOrientation = () => {
+      let isLand = false;
+      if (window.screen?.orientation?.type) {
+        isLand = window.screen.orientation.type.startsWith('landscape');
+      } else if (typeof window.orientation !== 'undefined') {
+        isLand = Math.abs(window.orientation) === 90;
+      } else {
+        isLand = window.innerWidth > window.innerHeight;
+      }
+      setIsLandscape(isLand);
+    };
+
+    window.addEventListener('resize', handleOrientation);
+    window.addEventListener('orientationchange', handleOrientation);
+    if (window.screen?.orientation) {
+      window.screen.orientation.addEventListener('change', handleOrientation);
+    }
+
+    return () => {
+      window.removeEventListener('resize', handleOrientation);
+      window.removeEventListener('orientationchange', handleOrientation);
+      if (window.screen?.orientation) {
+        window.screen.orientation.removeEventListener('change', handleOrientation);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const fetchIp = async () => {
@@ -345,22 +383,47 @@ export default function MobileCam({ onBackToDashboard }) {
       lastFrameTimeRef.current = now;
       lastSendTimeRef.current = now;
 
+      // Detect current device orientation directly
+      const isLand = (window.screen?.orientation?.type
+        ? window.screen.orientation.type.startsWith('landscape')
+        : (typeof window.orientation !== 'undefined' ? Math.abs(window.orientation) === 90 : window.innerWidth > window.innerHeight));
+
       const vw = videoRef.current.videoWidth;
       const vh = videoRef.current.videoHeight;
       const maxDim = qualityMode === 'hd' ? 640 : 480;
 
       let targetW, targetH;
-      if (vw >= vh) {
+      let needsRotation = false;
+      let rotationAngle = 0;
+
+      if (isLand) {
+        // Landscape output: targetW is wide (e.g. 640), targetH is smaller (e.g. 360)
         targetW = maxDim;
-        targetH = Math.round((vh / vw) * maxDim);
+        if (vw >= vh) {
+          targetH = Math.round((vh / vw) * maxDim);
+        } else {
+          // Phone is held in landscape, but camera sensor buffer is portrait: rotate canvas 90 deg
+          targetH = Math.round((vw / vh) * maxDim);
+          needsRotation = true;
+          const angle = window.screen?.orientation?.angle ?? window.orientation ?? 90;
+          rotationAngle = (angle === 270 || angle === -90) ? -90 : 90;
+        }
       } else {
+        // Portrait output: targetH is tall (e.g. 640), targetW is narrower (e.g. 360)
         targetH = maxDim;
-        targetW = Math.round((vw / vh) * maxDim);
+        if (vh >= vw) {
+          targetW = Math.round((vw / vh) * maxDim);
+        } else {
+          // Phone is held in portrait, but camera sensor buffer is landscape: rotate canvas -90 deg
+          targetW = Math.round((vh / vw) * maxDim);
+          needsRotation = true;
+          rotationAngle = -90;
+        }
       }
 
-      // Even dimensions for clean hardware compression
-      targetW = targetW & ~1;
-      targetH = targetH & ~1;
+      // Ensure even dimensions
+      targetW = Math.max(160, targetW & ~1);
+      targetH = Math.max(160, targetH & ~1);
 
       if (!offCanvasRef.current) {
         offCanvasRef.current = document.createElement('canvas');
@@ -371,13 +434,26 @@ export default function MobileCam({ onBackToDashboard }) {
         offCanvas.height = targetH;
       }
       const ctx = offCanvas.getContext('2d');
-      ctx.drawImage(videoRef.current, 0, 0, targetW, targetH);
+
+      if (needsRotation) {
+        ctx.save();
+        ctx.translate(targetW / 2, targetH / 2);
+        ctx.rotate((rotationAngle * Math.PI) / 180);
+        // Swap dimensions for rotated draw
+        ctx.drawImage(videoRef.current, -targetH / 2, -targetW / 2, targetH, targetW);
+        ctx.restore();
+      } else {
+        ctx.drawImage(videoRef.current, 0, 0, targetW, targetH);
+      }
+
       const b64 = offCanvas.toDataURL('image/jpeg', 0.52);
 
       try {
         wsRef.current.send(JSON.stringify({
           image: b64,
           source: "mobile_phone",
+          orientation: isLand ? "landscape" : "portrait",
+          aspect_ratio: Number((targetW / targetH).toFixed(3)),
           need_preview: viewMode === 'ai'
         }));
       } catch (err) {
@@ -474,6 +550,11 @@ export default function MobileCam({ onBackToDashboard }) {
             <span className="font-semibold text-white tracking-wide">
               {isStreaming ? `${telemetry.fps} FPS • LIVE` : 'STANDBY'}
             </span>
+          </div>
+
+          {/* Real-time Orientation Mode Badge */}
+          <div className="hidden xs:flex items-center gap-1.5 bg-zinc-900/90 border border-zinc-800 px-2.5 py-1.5 rounded-lg text-[11px] font-mono text-zinc-300">
+            <span>{isLandscape ? '🖥️ Landscape 16:9' : '📱 Portrait 9:16'}</span>
           </div>
         </div>
 
