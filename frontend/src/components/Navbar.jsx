@@ -85,11 +85,11 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen, activeTab, setA
                 ROADGUARD
               </span>
               <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">
-                v2.4
+                v3.0 AI
               </span>
             </div>
             <p className="text-[11px] text-zinc-400 font-normal hidden sm:block">
-              Traffic Monitoring & Incident Analytics
+              Traffic Safety & 80-Class Object Intelligence
             </p>
           </div>
         </div>

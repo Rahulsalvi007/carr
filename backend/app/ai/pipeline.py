@@ -11,16 +11,18 @@ from backend.app.ai.ocr_engine import OCREngine
 from backend.app.ai.helmet_detector import HelmetDetector
 from backend.app.ai.ev_classifier import EVClassifier
 from backend.app.ai.violation_engine import ViolationEngine
+from backend.app.ai.object_detector import GeneralObjectDetector
 
 class AIPipeline:
     """
-    Master Road Safety and Vehicle Monitoring Pipeline.
+    Master Road Safety, Vehicle Monitoring, and General Object Detection Pipeline.
     Integrates vehicle tracking, plate localization, OCR, helmet checking,
-    EV classification, violation generation, and visual HUD rendering.
+    EV classification, violation generation, and 80-class COCO general object detection.
     """
     def __init__(self):
         print("[AIPipeline] Initializing AI models and engines...")
         self.vehicle_detector = VehicleDetector()
+        self.object_detector = GeneralObjectDetector()
         self.plate_detector = PlateDetector()
         self.ocr_engine = OCREngine()
         self.helmet_detector = HelmetDetector()
@@ -65,18 +67,66 @@ class AIPipeline:
         self,
         frame: np.ndarray,
         frame_id: Optional[int] = None,
-        persist_tracking: bool = True
+        persist_tracking: bool = True,
+        detection_mode: str = "combined",
+        object_threshold: Optional[float] = None,
+        object_thresh: Optional[float] = None,
+        filter_category: Optional[str] = None,
+        category_filter: Optional[str] = None,
+        search_query: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Executes complete multi-stage computer vision pipeline on a single frame.
-        Uses tracking cache to prevent redundant OCR/heavy model execution on consecutive frames.
+        Supports three operational modes:
+          - 'combined': Dual-Layer Traffic Safety AI + 80-Class General Object Detection
+          - 'objects': Dedicated General Object Detection (People, Animals, Electronics, etc.)
+          - 'traffic': Specialized Road Safety Surveillance (Vehicles, Helmets, Plates, Violations)
         """
+        if object_threshold is not None:
+            object_thresh = object_threshold
+        if category_filter is not None:
+            filter_category = category_filter
+
         if frame is None or frame.size == 0:
             return {
                 "vehicles": [],
                 "violations": [],
+                "objects": [],
+                "object_counts": self.object_detector._empty_counts(),
                 "annotated_frame": frame,
                 "counts": {}
+            }
+
+        mode = (detection_mode or "combined").lower()
+
+        # MODE: Dedicated General Objects
+        if mode == "objects":
+            objects, obj_counts = self.object_detector.detect(
+                frame,
+                confidence_threshold=object_thresh,
+                filter_category=filter_category
+            )
+            annotated = self.object_detector.render_bounding_boxes(
+                frame,
+                objects,
+                highlight_category=filter_category,
+                search_query=search_query
+            )
+            return {
+                "vehicles": [],
+                "violations": [],
+                "objects": objects,
+                "object_counts": obj_counts,
+                "annotated_frame": annotated,
+                "counts": {
+                    "total_vehicles": obj_counts["categories"].get("Vehicles", 0),
+                    "cars": obj_counts["breakdown"].get("Car", 0),
+                    "bikes": obj_counts["breakdown"].get("Motorcycle", 0) + obj_counts["breakdown"].get("Bicycle", 0),
+                    "buses": obj_counts["breakdown"].get("Bus", 0),
+                    "trucks": obj_counts["breakdown"].get("Truck", 0),
+                    "evs": 0,
+                    "violations_in_frame": 0
+                }
             }
 
         # Harvest background OCR results if finished
@@ -84,8 +134,6 @@ class AIPipeline:
             try:
                 res_text, res_conf, res_raw = self._ocr_future.result()
                 if self._ocr_target_key:
-                    # If uncertain or unread, expire in 2.5s so next sharper frame can be OCR'd!
-                    # If valid recognized plate, cache for 60 seconds!
                     is_valid_num = res_text not in ["Uncertain", "Reading...", "Not Detected", ""]
                     ttl = 60.0 if is_valid_num else 2.5
                     self._plate_cache[self._ocr_target_key] = {
@@ -203,7 +251,6 @@ class AIPipeline:
             )
             all_violations.extend(violations)
 
-
             # Assemble vehicle record
             vehicle_summary = {
                 "track_id": track_id,
@@ -218,12 +265,61 @@ class AIPipeline:
             }
             processed_vehicles.append(vehicle_summary)
 
-            # Step 7: Draw visual HUD annotations
-            self._draw_vehicle_hud(annotated, vehicle_summary)
+        # Step 7: General Object Detection Layer (if combined mode)
+        detected_objects = []
+        object_counts = self.object_detector._empty_counts()
+
+        if mode == "combined":
+            all_objects, obj_counts = self.object_detector.detect(
+                frame,
+                confidence_threshold=object_thresh,
+                filter_category=filter_category
+            )
+            detected_objects = all_objects
+            object_counts = obj_counts
+
+            # Deduplication: Correlate general vehicle objects with Traffic AI vehicles
+            for obj in detected_objects:
+                if obj["category"] == "Vehicles":
+                    bA = obj["bbox"]
+                    for veh in processed_vehicles:
+                        bB = veh["bbox"]
+                        # IoU calculation
+                        xA = max(bA[0], bB[0])
+                        yA = max(bA[1], bB[1])
+                        xB = min(bA[2], bB[2])
+                        yB = min(bA[3], bB[3])
+                        interArea = max(0, xB - xA) * max(0, yB - yA)
+                        areaA = max(1, (bA[2] - bA[0]) * (bA[3] - bA[1]))
+                        areaB = max(1, (bB[2] - bB[0]) * (bB[3] - bB[1]))
+                        iou = interArea / float(areaA + areaB - interArea)
+                        if iou > 0.40:
+                            obj["track_id"] = veh["track_id"]
+                            obj["plate"] = veh["plate_info"].get("plate_number")
+                            obj["has_violation"] = veh["has_violation"]
+                            break
+
+            # Draw non-vehicle general objects first (People, Animals, Electronics, Daily Objects, Traffic Lights)
+            non_vehicle_objects = [o for o in detected_objects if o["category"] != "Vehicles"]
+            if filter_category and filter_category.upper() == "VEHICLES":
+                non_vehicle_objects = []
+            annotated = self.object_detector.render_bounding_boxes(
+                annotated,
+                non_vehicle_objects,
+                highlight_category=filter_category,
+                search_query=search_query
+            )
+
+        # Draw visual HUD annotations for traffic vehicles
+        if not filter_category or filter_category.upper() in ["ALL", "VEHICLES"]:
+            for vehicle_summary in processed_vehicles:
+                self._draw_vehicle_hud(annotated, vehicle_summary)
 
         return {
             "vehicles": processed_vehicles,
             "violations": all_violations,
+            "objects": detected_objects,
+            "object_counts": object_counts,
             "annotated_frame": annotated,
             "counts": {
                 "total_vehicles": len(vehicles),

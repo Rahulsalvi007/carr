@@ -11,9 +11,47 @@ import {
   Zap,
   Hash,
   RefreshCw,
-  Eye
+  Eye,
+  Box,
+  Users,
+  Cpu,
+  Tag,
+  Search,
+  X,
+  Sparkles,
+  SlidersHorizontal,
+  Package
 } from 'lucide-react';
 import { detectImage, detectVideo } from '../services/api';
+
+const OBJECT_CATEGORIES = [
+  { id: 'All', label: 'All Objects' },
+  { id: 'People', label: 'People' },
+  { id: 'Vehicles', label: 'Vehicles' },
+  { id: 'Animals', label: 'Animals' },
+  { id: 'Electronics', label: 'Electronics' },
+  { id: 'Daily Objects', label: 'Daily Objects' },
+  { id: 'Traffic', label: 'Traffic Signs' },
+];
+
+const getCategoryBadgeClass = (category) => {
+  switch (category) {
+    case 'People':
+      return { pill: 'bg-amber-500/10 text-amber-400 border-amber-500/30', dot: 'bg-amber-400' };
+    case 'Vehicles':
+      return { pill: 'bg-blue-500/10 text-blue-400 border-blue-500/30', dot: 'bg-blue-400' };
+    case 'Animals':
+      return { pill: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', dot: 'bg-emerald-400' };
+    case 'Electronics':
+      return { pill: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30', dot: 'bg-cyan-400' };
+    case 'Daily Objects':
+      return { pill: 'bg-purple-500/10 text-purple-400 border-purple-500/30', dot: 'bg-purple-400' };
+    case 'Traffic':
+      return { pill: 'bg-rose-500/10 text-rose-400 border-rose-500/30', dot: 'bg-rose-400' };
+    default:
+      return { pill: 'bg-zinc-800 text-zinc-300 border-zinc-700', dot: 'bg-zinc-400' };
+  }
+};
 
 export default function UploadMedia() {
   const [activeTab, setActiveTab] = useState('image'); // image or video
@@ -24,6 +62,12 @@ export default function UploadMedia() {
   const [videoResult, setVideoResult] = useState(null);
   const [frameSkip, setFrameSkip] = useState(2);
   const [dragActive, setDragActive] = useState(false);
+
+  // General Object AI States
+  const [aiMode, setAiMode] = useState('combined'); // 'combined', 'objects', 'traffic'
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [resultSubTab, setResultSubTab] = useState('objects');
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -64,8 +108,13 @@ export default function UploadMedia() {
     const formData = new FormData();
     formData.append('file', selectedFile);
 
+    const params = {
+      detection_mode: aiMode,
+      ...(selectedCategory !== 'All' ? { category: selectedCategory } : {})
+    };
+
     try {
-      const res = await detectImage(formData);
+      const res = await detectImage(formData, params);
       setImageResult(res.data);
     } catch (err) {
       alert(`Image processing error: ${err.response?.data?.detail || err.message}`);
@@ -80,8 +129,13 @@ export default function UploadMedia() {
     const formData = new FormData();
     formData.append('file', selectedFile);
 
+    const params = {
+      detection_mode: aiMode,
+      ...(selectedCategory !== 'All' ? { category: selectedCategory } : {})
+    };
+
     try {
-      const res = await detectVideo(formData, frameSkip);
+      const res = await detectVideo(formData, frameSkip, params);
       setVideoResult(res.data);
     } catch (err) {
       alert(`Video processing error: ${err.response?.data?.detail || err.message}`);
@@ -94,7 +148,11 @@ export default function UploadMedia() {
     setIsProcessing(true);
     setImageResult(null);
     try {
-      const res = await fetch(`/api/detect/demo/${sampleName}`);
+      const params = new URLSearchParams({
+        detection_mode: aiMode,
+        ...(selectedCategory !== 'All' ? { category: selectedCategory } : {})
+      });
+      const res = await fetch(`/api/detect/demo/${sampleName}?${params.toString()}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setImageResult(data);
@@ -137,6 +195,97 @@ export default function UploadMedia() {
             <span>Video Tracking</span>
           </button>
         </div>
+      </div>
+
+      {/* AI Engine and Category Filter Bar */}
+      <div className="glass-panel p-3.5 rounded-xl space-y-2.5 shadow-md">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5 shrink-0">
+              <SlidersHorizontal size={13} className="text-zinc-300" /> AI Engine:
+            </span>
+            <div className="bg-zinc-950 p-0.5 rounded-lg border border-zinc-800 flex items-center gap-1">
+              <button
+                onClick={() => setAiMode('combined')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                  aiMode === 'combined'
+                    ? 'bg-white text-black shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <Sparkles size={13} className={aiMode === 'combined' ? 'text-black' : 'text-zinc-400'} />
+                <span>Dual AI (Combined)</span>
+              </button>
+
+              <button
+                onClick={() => setAiMode('objects')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                  aiMode === 'objects'
+                    ? 'bg-white text-black shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <Box size={13} className={aiMode === 'objects' ? 'text-black' : 'text-zinc-400'} />
+                <span>General Objects (80)</span>
+              </button>
+
+              <button
+                onClick={() => setAiMode('traffic')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                  aiMode === 'traffic'
+                    ? 'bg-white text-black shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <Car size={13} className={aiMode === 'traffic' ? 'text-black' : 'text-zinc-400'} />
+                <span>Traffic AI Only</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Real-time Search Filter */}
+          <div className="relative flex-1 max-w-xs">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search detected items..."
+              className="w-full bg-zinc-950/80 border border-zinc-800 text-xs text-zinc-200 placeholder-zinc-500 rounded-lg pl-8 pr-7 py-1.5 focus:outline-none focus:border-zinc-500 transition-colors"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-0.5"
+                title="Clear search"
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Category Pills */}
+        {aiMode !== 'traffic' && (
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 pt-0.5 text-xs">
+            <span className="text-[10px] uppercase font-bold text-zinc-400 shrink-0 mr-1 flex items-center gap-1">
+              <Tag size={11} /> Category:
+            </span>
+            {OBJECT_CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all shrink-0 ${
+                  selectedCategory === cat.id
+                    ? 'bg-white text-black font-semibold shadow-sm scale-105'
+                    : 'bg-zinc-900/90 text-zinc-400 hover:text-white hover:bg-zinc-800 border border-zinc-800/80'
+                }`}
+              >
+                <span>{cat.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 1-Click Quick Demo Testing Section */}
@@ -275,22 +424,36 @@ export default function UploadMedia() {
           {/* Summary Row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="pro-card p-4 rounded-xl">
-              <span className="text-[11px] text-zinc-400 uppercase tracking-wider font-medium">Vehicles Detected</span>
-              <p className="text-2xl font-bold font-mono text-white mt-1">{imageResult.counts?.total_vehicles || 0}</p>
-            </div>
-            <div className="pro-card p-4 rounded-xl">
-              <span className="text-[11px] text-zinc-400 uppercase tracking-wider font-medium">Cars / Bikes</span>
+              <span className="text-[11px] text-zinc-400 uppercase tracking-wider font-medium flex items-center gap-1.5">
+                <Box size={13} className="text-amber-400" /> Objects Detected
+              </span>
               <p className="text-2xl font-bold font-mono text-white mt-1">
-                {imageResult.counts?.cars || 0} / {imageResult.counts?.bikes || 0}
+                {imageResult.object_counts?.total_objects ?? (imageResult.objects?.length || 0)}
               </p>
             </div>
             <div className="pro-card p-4 rounded-xl">
-              <span className="text-[11px] text-zinc-400 uppercase tracking-wider font-medium">EVs Identified</span>
-              <p className="text-2xl font-bold font-mono text-white mt-1">{imageResult.counts?.evs || 0}</p>
+              <span className="text-[11px] text-zinc-400 uppercase tracking-wider font-medium flex items-center gap-1.5">
+                <Car size={13} className="text-blue-400" /> Road Vehicles
+              </span>
+              <p className="text-2xl font-bold font-mono text-white mt-1">
+                {imageResult.counts?.total_vehicles || 0}
+              </p>
             </div>
             <div className="pro-card p-4 rounded-xl">
-              <span className="text-[11px] text-zinc-400 uppercase tracking-wider font-medium">Safety Violations</span>
-              <p className="text-2xl font-bold font-mono text-red-400 mt-1">{imageResult.violations?.length || 0}</p>
+              <span className="text-[11px] text-zinc-400 uppercase tracking-wider font-medium flex items-center gap-1.5">
+                <AlertTriangle size={13} className="text-red-400" /> Safety Violations
+              </span>
+              <p className="text-2xl font-bold font-mono text-red-400 mt-1">
+                {imageResult.violations?.length || 0}
+              </p>
+            </div>
+            <div className="pro-card p-4 rounded-xl">
+              <span className="text-[11px] text-zinc-400 uppercase tracking-wider font-medium flex items-center gap-1.5">
+                <Zap size={13} className="text-emerald-400" /> Latency
+              </span>
+              <p className="text-2xl font-bold font-mono text-emerald-400 mt-1">
+                {imageResult.inference_ms} ms
+              </p>
             </div>
           </div>
 
@@ -304,61 +467,186 @@ export default function UploadMedia() {
               <div className="p-2 flex items-center justify-center bg-black/60">
                 <img
                   src={imageResult.annotated_image}
-                  alt="Annotated Traffic"
+                  alt="Annotated Media"
                   className="w-full h-auto max-h-[600px] object-contain rounded-lg"
                 />
               </div>
             </div>
 
-            {/* Detected Objects Details List */}
-            <div className="pro-card rounded-xl p-4 space-y-3 max-h-[640px] overflow-y-auto">
-              <h3 className="font-semibold text-sm text-white">Extracted Object Attributes</h3>
+            {/* Detected Objects Details List with Dual Sub-Tabs */}
+            <div className="pro-card rounded-xl p-4 space-y-3 max-h-[640px] flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-sm text-white">Extracted Telemetry</h3>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 font-mono border border-zinc-700">
+                  {resultSubTab === 'objects' ? `${imageResult.objects?.length || 0} objects` : `${imageResult.vehicles?.length || 0} vehicles`}
+                </span>
+              </div>
 
-              {imageResult.vehicles && imageResult.vehicles.length > 0 ? (
-                imageResult.vehicles.map((v, i) => (
-                  <div key={i} className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {v.vehicle_type === 'Motorcycle' ? (
-                          <Bike size={15} className="text-zinc-300" />
-                        ) : (
-                          <Car size={15} className="text-zinc-300" />
-                        )}
-                        <span className="font-semibold text-xs text-white">{v.vehicle_type}</span>
-                      </div>
-                      <span className="text-xs font-mono text-zinc-400 font-medium">
-                        {Math.round(v.confidence * 100)}%
-                      </span>
+              {/* Sub-Tab Navigation Header */}
+              <div className="grid grid-cols-2 gap-1 bg-zinc-950/80 p-1 rounded-lg border border-zinc-800">
+                <button
+                  onClick={() => setResultSubTab('objects')}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                    resultSubTab === 'objects'
+                      ? 'bg-white text-black shadow-sm'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  <Box size={13} />
+                  <span>Objects ({imageResult.objects?.length || 0})</span>
+                </button>
+
+                <button
+                  onClick={() => setResultSubTab('vehicles')}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                    resultSubTab === 'vehicles'
+                      ? 'bg-white text-black shadow-sm'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  <Car size={13} />
+                  <span>Vehicles ({imageResult.vehicles?.length || 0})</span>
+                </button>
+              </div>
+
+              {/* TAB 1: GENERAL OBJECTS */}
+              {resultSubTab === 'objects' && (
+                <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
+                  {/* Category Breakdown Chips */}
+                  {imageResult.object_counts?.breakdown && Object.keys(imageResult.object_counts.breakdown).length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 p-2 rounded-lg bg-zinc-950/60 border border-zinc-800/80">
+                      {Object.entries(imageResult.object_counts.breakdown).map(([name, count]) => (
+                        <span
+                          key={name}
+                          className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 font-medium"
+                        >
+                          <span>{name}</span>
+                          <span className="font-bold text-white bg-zinc-800 px-1 rounded text-[10px] font-mono">
+                            ×{count}
+                          </span>
+                        </span>
+                      ))}
                     </div>
+                  )}
 
-                    <div className="text-xs space-y-1 text-zinc-400">
-                      <div className="flex items-center justify-between">
-                        <span>Plate:</span>
-                        <span className="font-mono text-white font-medium">
-                          {v.plate?.detected ? `${v.plate.plate_number} (${Math.round(v.plate.ocr_confidence * 100)}%)` : 'Not Detected'}
-                        </span>
-                      </div>
+                  {(() => {
+                    const objects = imageResult.objects || [];
+                    const filtered = objects.filter(obj => {
+                      if (selectedCategory !== 'All' && obj.category !== selectedCategory) return false;
+                      if (searchQuery.trim()) {
+                        const q = searchQuery.toLowerCase();
+                        return obj.name.toLowerCase().includes(q) || obj.category.toLowerCase().includes(q);
+                      }
+                      return true;
+                    });
 
-                      <div className="flex items-center justify-between">
-                        <span>Propulsion:</span>
-                        <span className={v.power_type === 'Electric' ? 'text-emerald-400 font-semibold' : 'text-zinc-300'}>
-                          {v.power_type} ({Math.round(v.power_type_confidence * 100)}%)
-                        </span>
-                      </div>
+                    if (filtered.length === 0) {
+                      return (
+                        <div className="py-12 text-center text-zinc-500 text-xs flex flex-col items-center justify-center space-y-2">
+                          <Box size={24} className="text-zinc-700" />
+                          <span>No objects detected matching criteria.</span>
+                        </div>
+                      );
+                    }
 
-                      {v.helmet && (
-                        <div className="flex items-center justify-between pt-1 border-t border-zinc-800">
-                          <span>Helmet:</span>
-                          <span className={v.helmet.helmet_status === 'YES' ? 'text-emerald-400 font-medium' : 'text-red-400 font-medium'}>
-                            {v.helmet.helmet_status === 'YES' ? 'Verified' : 'No Helmet Violation'} ({Math.round(v.helmet.confidence * 100)}%)
+                    return filtered.map((obj, idx) => {
+                      const badge = getCategoryBadgeClass(obj.category);
+                      const isMatch = searchQuery && (
+                        obj.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        obj.category.toLowerCase().includes(searchQuery.toLowerCase())
+                      );
+
+                      return (
+                        <div
+                          key={obj.id || idx}
+                          className={`p-3 rounded-lg border transition-all ${
+                            isMatch
+                              ? 'bg-amber-500/10 border-amber-500/50 shadow-sm ring-1 ring-amber-500/30'
+                              : 'bg-zinc-950 border-zinc-800'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className={`w-2 h-2 rounded-full ${badge.dot}`} />
+                              <span className="font-bold text-xs text-white capitalize">{obj.name}</span>
+                              <span className={`text-[10px] px-1.5 py-0.2 rounded border font-medium ${badge.pill}`}>
+                                {obj.category}
+                              </span>
+                            </div>
+                            <span className="text-xs font-mono font-semibold text-emerald-400">
+                              {Math.round(obj.confidence)}%
+                            </span>
+                          </div>
+
+                          <div className="w-full bg-zinc-900 rounded-full h-1 mt-2 overflow-hidden">
+                            <div
+                              className="bg-emerald-400 h-1 rounded-full"
+                              style={{ width: `${Math.min(100, Math.max(5, obj.confidence))}%` }}
+                            />
+                          </div>
+
+                          {obj.bbox && (
+                            <div className="mt-2 text-[10px] font-mono text-zinc-500 flex items-center justify-between">
+                              <span>Box: [{obj.bbox.slice(0, 4).join(', ')}]</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              )}
+
+              {/* TAB 2: VEHICLES & OCR */}
+              {resultSubTab === 'vehicles' && (
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                  {imageResult.vehicles && imageResult.vehicles.length > 0 ? (
+                    imageResult.vehicles.map((v, i) => (
+                      <div key={i} className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {v.vehicle_type === 'Motorcycle' ? (
+                              <Bike size={15} className="text-zinc-300" />
+                            ) : (
+                              <Car size={15} className="text-zinc-300" />
+                            )}
+                            <span className="font-semibold text-xs text-white">{v.vehicle_type}</span>
+                          </div>
+                          <span className="text-xs font-mono text-zinc-400 font-medium">
+                            {Math.round(v.confidence * 100)}%
                           </span>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-xs text-zinc-500">No vehicles detected in this image.</p>
+
+                        <div className="text-xs space-y-1 text-zinc-400">
+                          <div className="flex items-center justify-between">
+                            <span>Plate:</span>
+                            <span className="font-mono text-white font-medium">
+                              {v.plate?.detected ? `${v.plate.plate_number} (${Math.round(v.plate.ocr_confidence * 100)}%)` : 'Not Detected'}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <span>Propulsion:</span>
+                            <span className={v.power_type === 'Electric' ? 'text-emerald-400 font-semibold' : 'text-zinc-300'}>
+                              {v.power_type} ({Math.round(v.power_type_confidence * 100)}%)
+                            </span>
+                          </div>
+
+                          {v.helmet && (
+                            <div className="flex items-center justify-between pt-1 border-t border-zinc-800">
+                              <span>Helmet:</span>
+                              <span className={v.helmet.helmet_status === 'YES' ? 'text-emerald-400 font-medium' : 'text-red-400 font-medium'}>
+                                {v.helmet.helmet_status === 'YES' ? 'Verified' : 'No Helmet Violation'} ({Math.round(v.helmet.confidence * 100)}%)
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-zinc-500 py-10 text-center">No vehicles detected in this image.</p>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -380,7 +668,11 @@ export default function UploadMedia() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3.5 rounded-lg bg-zinc-950 border border-zinc-800">
+              <span className="text-[11px] text-zinc-400 uppercase tracking-wider font-medium">Objects Detected</span>
+              <p className="text-xl font-bold font-mono text-amber-400 mt-1">{videoResult.total_objects_detected ?? 0}</p>
+            </div>
             <div className="p-3.5 rounded-lg bg-zinc-950 border border-zinc-800">
               <span className="text-[11px] text-zinc-400 uppercase tracking-wider font-medium">Tracked Vehicles</span>
               <p className="text-xl font-bold font-mono text-white mt-1">{videoResult.unique_vehicles_tracked}</p>
@@ -399,7 +691,7 @@ export default function UploadMedia() {
           <div className="p-4 rounded-lg bg-zinc-950 border border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
               <h4 className="text-xs font-semibold text-white">Annotated Video File Ready</h4>
-              <p className="text-xs text-zinc-400">Contains tracking IDs, OCR license plate overlays, and violation badges.</p>
+              <p className="text-xs text-zinc-400">Contains tracking IDs, general objects, OCR license plate overlays, and violation badges.</p>
             </div>
             <a
               href={videoResult.output_video_url}

@@ -14,7 +14,7 @@ import {
 
 const MENU_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'live', label: 'Live Detection', icon: Video, badge: 'Live' },
+  { id: 'live', label: 'Live Detection', icon: Video, badge: 'Dual AI' },
   { id: 'upload', label: 'Upload Media', icon: UploadCloud },
   { id: 'vehicles', label: 'Vehicles', icon: Car },
   { id: 'violations', label: 'Violations', icon: AlertTriangle, badge: 'Alerts' },
@@ -88,7 +88,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
         <div className="p-3.5 border-t border-zinc-800/80 bg-zinc-900/30">
           <div className="flex items-center justify-between text-[11px] text-zinc-400 mb-1.5">
             <span>Vision Core</span>
-            <span className="font-mono text-zinc-200 text-[10px]">YOLOv8 + OCR</span>
+            <span className="font-mono text-zinc-200 text-[10px]">Dual AI: 80 Objects + OCR</span>
           </div>
           <div className="w-full bg-zinc-800 rounded-full h-1 overflow-hidden">
             <div className="bg-zinc-400 h-1 rounded-full w-full" />

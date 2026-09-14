@@ -19,11 +19,13 @@ export const updateViolationStatus = (id, status) => api.patch(`/violations/${id
 export const getVehicles = (params) => api.get('/vehicles', { params });
 export const getDetectionsHistory = (params) => api.get('/detections', { params });
 
-export const detectImage = (formData) => api.post('/detect/image', formData, {
+export const detectImage = (formData, params = {}) => api.post('/detect/image', formData, {
+  params,
   headers: { 'Content-Type': 'multipart/form-data' },
 });
 
-export const detectVideo = (formData, frameSkip = 2) => api.post(`/detect/video?frame_skip=${frameSkip}`, formData, {
+export const detectVideo = (formData, frameSkip = 2, params = {}) => api.post(`/detect/video`, formData, {
+  params: { frame_skip: frameSkip, ...params },
   headers: { 'Content-Type': 'multipart/form-data' },
 });
 

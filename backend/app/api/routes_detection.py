@@ -2,6 +2,7 @@ import os
 import cv2
 import uuid
 import time
+from typing import Optional, Dict, Any, List
 import numpy as np
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Query, BackgroundTasks
 from fastapi.responses import JSONResponse, FileResponse
@@ -25,12 +26,16 @@ def get_pipeline():
 @router.post("/detect/image")
 async def detect_image(
     file: UploadFile = File(...),
+    detection_mode: str = Query("combined", description="Detection mode: combined, objects, or traffic"),
+    object_threshold: Optional[float] = Query(None, description="Confidence threshold for general objects"),
+    category: Optional[str] = Query(None, description="Filter specific category (e.g. People, Electronics, Animals)"),
     db: Session = Depends(get_db),
     pipeline: AIPipeline = Depends(get_pipeline)
 ):
     """
-    Analyzes an uploaded image for vehicles, license plates, helmets, EVs, and safety violations.
-    Returns structured detections and base64-annotated image.
+    Analyzes an uploaded image for vehicles, license plates, helmets, EVs, safety violations,
+    and 80-class general objects (People, Animals, Electronics, Daily Objects, Traffic).
+    Returns structured detections, object categories, and base64-annotated image.
     """
     is_valid_image = (
         (file.content_type and file.content_type.startswith("image/")) or
@@ -53,7 +58,13 @@ async def detect_image(
 
     # Process frame through full AI pipeline
     start_time = time.time()
-    result = pipeline.process_frame(image, persist_tracking=False)
+    result = pipeline.process_frame(
+        image,
+        persist_tracking=False,
+        detection_mode=detection_mode,
+        object_thresh=object_threshold,
+        filter_category=category
+    )
     inference_ms = round((time.time() - start_time) * 1000, 1)
 
     # Persist detected vehicles, plates, helmet checks, and violations to DB
@@ -127,6 +138,8 @@ async def detect_image(
         "status": "success",
         "inference_ms": inference_ms,
         "counts": result["counts"],
+        "objects": result.get("objects", []),
+        "object_counts": result.get("object_counts", {}),
         "vehicles": [
             {
                 "vehicle_type": v["vehicle_type"],
@@ -148,13 +161,16 @@ async def detect_image(
 async def detect_video(
     file: UploadFile = File(...),
     frame_skip: int = Query(2, ge=1, le=10, description="Process every Nth frame for performance"),
+    detection_mode: str = Query("combined", description="Detection mode: combined, objects, or traffic"),
+    object_threshold: Optional[float] = Query(None, description="Confidence threshold for general objects"),
+    category: Optional[str] = Query(None, description="Filter specific category"),
     db: Session = Depends(get_db),
     pipeline: AIPipeline = Depends(get_pipeline)
 ):
     """
     Processes an uploaded video file frame-by-frame.
-    Generates annotated output video, logs all tracked vehicles and violations,
-    and returns comprehensive statistics and output video path.
+    Generates annotated output video, logs all tracked vehicles, violations,
+    and general objects, and returns comprehensive statistics and output video path.
     """
     video_ext = os.path.splitext(file.filename)[1] or ".mp4"
     temp_in_filename = f"upload_{int(time.time())}_{uuid.uuid4().hex[:6]}{video_ext}"
@@ -187,6 +203,8 @@ async def detect_video(
     start_time = time.time()
     total_violations_found = 0
     unique_tracked_vehicles = set()
+    total_object_detections = 0
+    aggregate_object_counts = {}
 
     try:
         while True:
@@ -199,7 +217,20 @@ async def detect_video(
                 continue
 
             processed_count += 1
-            result = pipeline.process_frame(frame, frame_id=frame_idx, persist_tracking=True)
+            result = pipeline.process_frame(
+                frame,
+                frame_id=frame_idx,
+                persist_tracking=True,
+                detection_mode=detection_mode,
+                object_threshold=object_threshold,
+                category_filter=category
+            )
+
+            # Count general objects
+            for obj_item in result.get("objects", []):
+                lbl = obj_item.get("label", "unknown")
+                aggregate_object_counts[lbl] = aggregate_object_counts.get(lbl, 0) + 1
+                total_object_detections += 1
 
             # Persist to database
             for v in result["vehicles"]:
@@ -274,6 +305,8 @@ async def detect_video(
         "processing_fps": avg_fps,
         "unique_vehicles_tracked": len(unique_tracked_vehicles),
         "total_violations_recorded": total_violations_found,
+        "total_objects_detected": total_object_detections,
+        "object_counts": aggregate_object_counts,
         "output_video_url": f"/api/download/video/{out_filename}",
         "filename": out_filename
     }
@@ -288,6 +321,9 @@ async def download_video(filename: str):
 @router.get("/detect/demo/{sample_name}")
 async def detect_demo(
     sample_name: str,
+    detection_mode: str = Query("combined", description="Detection mode: combined, objects, or traffic"),
+    object_threshold: Optional[float] = Query(None, description="Confidence threshold for general objects"),
+    category: Optional[str] = Query(None, description="Filter specific category"),
     db: Session = Depends(get_db),
     pipeline: AIPipeline = Depends(get_pipeline)
 ):
@@ -310,7 +346,13 @@ async def detect_demo(
         raise HTTPException(status_code=500, detail="Could not read sample image file.")
 
     start_time = time.time()
-    result = pipeline.process_frame(image, persist_tracking=False)
+    result = pipeline.process_frame(
+        image,
+        persist_tracking=False,
+        detection_mode=detection_mode,
+        object_threshold=object_threshold,
+        category_filter=category
+    )
     inference_ms = round((time.time() - start_time) * 1000, 1)
 
     for v in result["vehicles"]:
@@ -380,6 +422,8 @@ async def detect_demo(
         "sample": sample_name,
         "inference_ms": inference_ms,
         "counts": result["counts"],
+        "objects": result.get("objects", []),
+        "object_counts": result.get("object_counts", {}),
         "vehicles": [
             {
                 "vehicle_type": v["vehicle_type"],

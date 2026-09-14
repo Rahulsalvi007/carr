@@ -180,8 +180,28 @@ async def websocket_live_endpoint(websocket: WebSocket):
             frame_counter += 1
             t_start = time.time()
 
-            # Execute full AI Pipeline with tracking
-            result = pipeline.process_frame(frame, frame_id=frame_counter, persist_tracking=True)
+            # Extract detection parameters
+            detection_mode = data.get("detection_mode", "combined")
+            object_threshold = data.get("object_threshold")
+            if object_threshold is not None:
+                try:
+                    object_threshold = float(object_threshold)
+                except (ValueError, TypeError):
+                    object_threshold = None
+
+            category_filter = data.get("category")
+            if category_filter in ["All", "", None]:
+                category_filter = None
+
+            # Execute full AI Pipeline with tracking and object detection
+            result = pipeline.process_frame(
+                frame,
+                frame_id=frame_counter,
+                persist_tracking=True,
+                detection_mode=detection_mode,
+                object_threshold=object_threshold,
+                category_filter=category_filter
+            )
             inference_time = round((time.time() - t_start) * 1000, 1)
 
             # Persist detections and violations in background without blocking video stream
@@ -207,12 +227,18 @@ async def websocket_live_endpoint(websocket: WebSocket):
                 for v in result["vehicles"]
             ]
 
+            objects_data = result.get("objects", [])
+            object_counts = result.get("object_counts", {})
+
             # Full payload with video frame for viewers (laptop monitor)
             viewer_payload = {
                 "frame_id": frame_counter,
                 "inference_ms": inference_time,
                 "fps": round(1000.0 / max(1.0, inference_time), 1),
                 "counts": result["counts"],
+                "objects": objects_data,
+                "object_counts": object_counts,
+                "detection_mode": detection_mode,
                 "source": data.get("source", "camera"),
                 "vehicles": vehicles_data,
                 "violations": result["violations"],
@@ -230,6 +256,9 @@ async def websocket_live_endpoint(websocket: WebSocket):
                         "inference_ms": inference_time,
                         "fps": round(1000.0 / max(1.0, inference_time), 1),
                         "counts": result["counts"],
+                        "objects": objects_data,
+                        "object_counts": object_counts,
+                        "detection_mode": detection_mode,
                         "source": "mobile_phone",
                         "vehicles": vehicles_data,
                         "violations": result["violations"]
