@@ -137,13 +137,7 @@ export default function MobileCam({ onBackToDashboard }) {
 
     // 3. Fallback to host
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    if (window.location.protocol === 'https:') {
-      return `wss://${window.location.host}/ws/live`;
-    }
-    if (window.location.port === '5173') {
-      return `ws://${window.location.hostname}:8000/ws/live`;
-    }
-    return `ws://${window.location.host}/ws/live`;
+    return `${protocol}//${window.location.host}/ws/live`;
   };
 
   const handleSaveRemoteServer = (url) => {

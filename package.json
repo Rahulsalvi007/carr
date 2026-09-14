@@ -1,0 +1,44 @@
+{
+  "name": "roadguard-ai",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx server.ts",
+    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "start": "node dist/server.cjs",
+    "lint": "oxlint"
+  },
+  "dependencies": {
+    "@google/genai": "*",
+    "@tailwindcss/vite": "^4.3.3",
+    "axios": "^1.20.0",
+    "clsx": "^2.1.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "lucide-react": "^1.45.0",
+    "multer": "^1.4.5-lts.1",
+    "qrcode": "^1.5.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "recharts": "^3.10.1",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.3.3",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.13.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@types/ws": "^8.5.14",
+    "@vitejs/plugin-react": "^6.1.1",
+    "esbuild": "^0.25.0",
+    "oxlint": "^1.81.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.0",
+    "vite": "^8.3.0"
+  }
+}

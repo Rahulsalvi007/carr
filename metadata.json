@@ -1,0 +1,10 @@
+{
+  "name": "RoadGuard AI",
+  "description": "Intelligent AI Road Safety & Vehicle Surveillance System with real-time video analysis, helmet violation detection, license plate recognition, EV classification, and vehicle telemetry.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
