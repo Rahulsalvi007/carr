@@ -73,6 +73,31 @@ def update_status(
         "new_status": updated.status
     }
 
+@router.get("/violations/{violation_id}")
+def get_single_violation(violation_id: int, db: Session = Depends(get_db)):
+    v = crud.get_violation_by_id(db, violation_id)
+    if not v:
+        raise HTTPException(status_code=404, detail="Violation not found.")
+    return {
+        "id": v.id,
+        "vehicle_id": v.vehicle_id,
+        "vehicle_type": v.vehicle_type,
+        "plate_number": v.plate_number,
+        "violation_type": v.violation_type,
+        "confidence": v.confidence,
+        "snapshot_url": f"/api/snapshots/{v.snapshot_path}" if v.snapshot_path else None,
+        "timestamp": v.timestamp.isoformat() if v.timestamp else None,
+        "status": v.status,
+        "notes": v.notes
+    }
+
+@router.delete("/violations/{violation_id}")
+def delete_single_violation(violation_id: int, db: Session = Depends(get_db)):
+    deleted = crud.delete_violation(db, violation_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Violation not found.")
+    return {"status": "success", "message": f"Violation #{violation_id} deleted successfully."}
+
 @router.get("/snapshots/{filename}")
 def serve_snapshot(filename: str):
     file_path = settings.VIOLATIONS_PATH / filename

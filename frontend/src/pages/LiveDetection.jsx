@@ -548,16 +548,23 @@ export default function LiveDetection() {
   }, []);
 
   const getEffectiveMobileCamUrl = () => {
+    // 1. Production / Deployed environment (domain, public IP, cloud service)
+    const hostname = window.location.hostname;
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    
+    if (!isLocalhost && hostname && window.location.port !== '5173') {
+      // On deployed domain or cloud, the origin is already the public HTTPS URL (e.g. https://traffic.mydomain.com)
+      return `${window.location.origin}/?tab=mobile-cam`;
+    }
+
+    // 2. Local development on LAN / Wi-Fi
     if (selectedIp) {
       return `https://${selectedIp}:5173/?tab=mobile-cam`;
     }
     if (networkInfo?.mobile_cam_url) {
       return networkInfo.mobile_cam_url;
     }
-    const currentHost = window.location.hostname;
-    const host = (currentHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1')
-      ? currentHost
-      : (networkInfo?.ip || '127.0.0.1');
+    const host = networkInfo?.ip || '127.0.0.1';
     return `https://${host}:5173/?tab=mobile-cam`;
   };
 

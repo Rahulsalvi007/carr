@@ -32,7 +32,11 @@ async def detect_image(
     Analyzes an uploaded image for vehicles, license plates, helmets, EVs, and safety violations.
     Returns structured detections and base64-annotated image.
     """
-    if not file.content_type.startswith("image/"):
+    is_valid_image = (
+        (file.content_type and file.content_type.startswith("image/")) or
+        (file.filename and file.filename.lower().endswith(('.jpg', '.jpeg', '.png', '.webp', '.bmp', '.tiff')))
+    )
+    if not is_valid_image:
         raise HTTPException(status_code=400, detail="Uploaded file must be a valid image (JPEG, PNG, etc.)")
 
     contents = await file.read()
@@ -292,7 +296,12 @@ async def detect_demo(
     Allows instant 1-click testing without manual file selection.
     """
     from pathlib import Path
-    sample_file = Path(__file__).resolve().parent.parent.parent.parent / "sample_media" / f"{sample_name}.jpg"
+    clean_name = sample_name
+    for ext in [".jpg", ".jpeg", ".png"]:
+        if clean_name.lower().endswith(ext):
+            clean_name = clean_name[:-len(ext)]
+            break
+    sample_file = Path(__file__).resolve().parent.parent.parent.parent / "sample_media" / f"{clean_name}.jpg"
     if not sample_file.exists():
         raise HTTPException(status_code=404, detail=f"Demo sample '{sample_name}' not found.")
 

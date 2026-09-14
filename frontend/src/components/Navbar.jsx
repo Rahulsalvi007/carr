@@ -53,11 +53,15 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen, activeTab, setA
   }, []);
 
   const copyMobileLink = () => {
-    if (networkInfo?.mobile_url) {
-      navigator.clipboard.writeText(networkInfo.mobile_url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    }
+    const hostname = window.location.hostname;
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    const url = (!isLocalhost && hostname && window.location.port !== '5173')
+      ? `${window.location.origin}/?tab=mobile-cam`
+      : (networkInfo?.mobile_cam_url || networkInfo?.mobile_url || `${window.location.origin}/?tab=mobile-cam`);
+    
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
   };
 
   return (

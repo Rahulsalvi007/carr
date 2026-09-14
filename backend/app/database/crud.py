@@ -166,6 +166,9 @@ def get_violations(
     violations = query.order_by(desc(Violation.timestamp)).offset(skip).limit(limit).all()
     return violations, total
 
+def get_violation_by_id(db: Session, violation_id: int) -> Optional[Violation]:
+    return db.query(Violation).filter(Violation.id == violation_id).first()
+
 def update_violation_status(db: Session, violation_id: int, new_status: str) -> Optional[Violation]:
     vio = db.query(Violation).filter(Violation.id == violation_id).first()
     if vio:
@@ -173,6 +176,14 @@ def update_violation_status(db: Session, violation_id: int, new_status: str) -> 
         db.commit()
         db.refresh(vio)
     return vio
+
+def delete_violation(db: Session, violation_id: int) -> bool:
+    vio = db.query(Violation).filter(Violation.id == violation_id).first()
+    if vio:
+        db.delete(vio)
+        db.commit()
+        return True
+    return False
 
 def get_vehicles(db: Session, skip: int = 0, limit: int = 50):
     total = db.query(Vehicle).count()
