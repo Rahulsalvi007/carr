@@ -56,14 +56,11 @@ async def detect_image(
     orig_filepath = settings.UPLOADS_PATH / orig_filename
     cv2.imwrite(str(orig_filepath), image)
 
-    # Process frame through full AI pipeline
+    # Process frame through dedicated vehicle vision pipeline
     start_time = time.time()
     result = pipeline.process_frame(
         image,
-        persist_tracking=False,
-        detection_mode=detection_mode,
-        object_thresh=object_threshold,
-        filter_category=category
+        persist_tracking=False
     )
     inference_ms = round((time.time() - start_time) * 1000, 1)
 
@@ -220,10 +217,7 @@ async def detect_video(
             result = pipeline.process_frame(
                 frame,
                 frame_id=frame_idx,
-                persist_tracking=True,
-                detection_mode=detection_mode,
-                object_threshold=object_threshold,
-                category_filter=category
+                persist_tracking=True
             )
 
             # Count general objects

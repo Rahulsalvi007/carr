@@ -15,7 +15,7 @@ import {
 
 const MENU_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'live', label: 'Live Detection', icon: Video, badge: 'Dual AI' },
+  { id: 'live', label: 'Live Detection', icon: Video, badge: 'Live' },
   { id: 'upload', label: 'Upload Media', icon: UploadCloud },
   { id: 'vehicles', label: 'Vehicles', icon: Car },
   { id: 'violations', label: 'Violations', icon: AlertTriangle, badge: 'Alerts' },

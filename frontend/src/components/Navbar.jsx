@@ -89,7 +89,7 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen, activeTab, setA
               </span>
             </div>
             <p className="text-[11px] text-zinc-500 font-normal hidden sm:block">
-              Traffic Safety & 80-Class Object Intelligence
+              Traffic Safety & Vehicle Surveillance
             </p>
           </div>
         </div>

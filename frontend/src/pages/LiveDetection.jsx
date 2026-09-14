@@ -40,35 +40,6 @@ import {
 import QRCode from 'qrcode';
 import { getNetworkIp } from '../services/api';
 
-const OBJECT_CATEGORIES = [
-  { id: 'All', label: 'All Objects', icon: Box },
-  { id: 'People', label: 'People', icon: Users },
-  { id: 'Vehicles', label: 'Vehicles', icon: Car },
-  { id: 'Animals', label: 'Animals', icon: Eye },
-  { id: 'Electronics', label: 'Electronics', icon: Cpu },
-  { id: 'Daily Objects', label: 'Daily Objects', icon: Package },
-  { id: 'Traffic', label: 'Traffic Signs', icon: Tag },
-];
-
-const getCategoryBadgeClass = (category) => {
-  switch (category) {
-    case 'People':
-      return { pill: 'bg-amber-500/10 text-amber-400 border-amber-500/30', dot: 'bg-amber-400' };
-    case 'Vehicles':
-      return { pill: 'bg-blue-500/10 text-blue-400 border-blue-500/30', dot: 'bg-blue-400' };
-    case 'Animals':
-      return { pill: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', dot: 'bg-emerald-400' };
-    case 'Electronics':
-      return { pill: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30', dot: 'bg-cyan-400' };
-    case 'Daily Objects':
-      return { pill: 'bg-purple-500/10 text-purple-400 border-purple-500/30', dot: 'bg-purple-400' };
-    case 'Traffic':
-      return { pill: 'bg-rose-500/10 text-rose-400 border-rose-500/30', dot: 'bg-rose-400' };
-    default:
-      return { pill: 'bg-zinc-800 text-zinc-300 border-zinc-700', dot: 'bg-zinc-400' };
-  }
-};
-
 export default function LiveDetection() {
   const [streamMode, setStreamMode] = useState('webcam'); // 'webcam', 'phone', 'sim'
   const streamModeRef = useRef('webcam');
@@ -895,135 +866,6 @@ export default function LiveDetection() {
         </div>
       </div>
 
-      {/* AI Mode, Category Filters & Real-time Object Search Bar */}
-      <div className="pro-card p-3 rounded-xl space-y-2.5 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          {/* AI Engine Selector */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5 shrink-0">
-              <SlidersHorizontal size={13} className="text-zinc-600" /> AI Engine:
-            </span>
-            <div className="bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 flex flex-wrap items-center gap-1">
-              <button
-                onClick={() => {
-                  setAiMode('combined');
-                  aiModeRef.current = 'combined';
-                }}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                  aiMode === 'combined'
-                    ? 'bg-zinc-950 text-white shadow-sm'
-                    : 'text-zinc-600 hover:text-zinc-950'
-                }`}
-                title="Dual-Layer AI: 80 COCO Objects + Road Traffic & Plates"
-              >
-                <Sparkles size={13} className={aiMode === 'combined' ? 'text-white' : 'text-zinc-500'} />
-                <span>Dual AI</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setAiMode('objects');
-                  aiModeRef.current = 'objects';
-                }}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                  aiMode === 'objects'
-                    ? 'bg-zinc-950 text-white shadow-sm'
-                    : 'text-zinc-600 hover:text-zinc-950'
-                }`}
-                title="General Object Detection (People, Electronics, Animals, etc.)"
-              >
-                <Box size={13} className={aiMode === 'objects' ? 'text-white' : 'text-zinc-500'} />
-                <span>Objects (80)</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setAiMode('traffic');
-                  aiModeRef.current = 'traffic';
-                }}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                  aiMode === 'traffic'
-                    ? 'bg-zinc-950 text-white shadow-sm'
-                    : 'text-zinc-600 hover:text-zinc-950'
-                }`}
-                title="Dedicated Road Safety AI (Vehicles, Helmets, Plates)"
-              >
-                <Car size={13} className={aiMode === 'traffic' ? 'text-white' : 'text-zinc-500'} />
-                <span>Traffic AI</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Real-time Search Input */}
-          <div className="relative flex-1 w-full md:max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                searchQueryRef.current = e.target.value;
-              }}
-              placeholder="Search objects in view (person, dog, laptop)..."
-              className="w-full bg-white border border-zinc-200 text-xs text-zinc-900 placeholder-zinc-400 rounded-lg pl-8 pr-7 py-1.5 focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => {
-                  setSearchQuery('');
-                  searchQueryRef.current = '';
-                }}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-900 p-0.5"
-                title="Clear search"
-              >
-                <X size={12} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Category Filter Pills (When in Combined or Objects Mode) */}
-        {aiMode !== 'traffic' && (
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 pt-0.5 text-xs">
-            <span className="text-[10px] uppercase font-bold text-zinc-500 shrink-0 mr-1 flex items-center gap-1">
-              <Tag size={11} /> Filter:
-            </span>
-            {OBJECT_CATEGORIES.map((cat) => {
-              const Icon = cat.icon;
-              const isSelected = selectedCategory === cat.id;
-              const count = cat.id === 'All'
-                ? (objectCounts.total_objects || activeObjects.length)
-                : (objectCounts.categories?.[cat.id] || 0);
-
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => {
-                    setSelectedCategory(cat.id);
-                    selectedCategoryRef.current = cat.id;
-                  }}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all shrink-0 ${
-                    isSelected
-                      ? 'bg-zinc-950 text-white font-semibold shadow-sm scale-105'
-                      : 'bg-zinc-100 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-200 border border-zinc-200'
-                  }`}
-                >
-                  <Icon size={12} />
-                  <span>{cat.label}</span>
-                  {count > 0 && (
-                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
-                      isSelected ? 'bg-white text-zinc-950 font-bold' : 'bg-zinc-200 text-zinc-800'
-                    }`}>
-                      {count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
       {/* Main Grid: Video Viewport & Real-time Telemetry */}
       <div className={`grid gap-4 ${isSidePanelOpen && !isFullscreen && !isTheaterMode ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'}`}>
         {/* Live Surveillance Viewport */}
@@ -1526,261 +1368,123 @@ export default function LiveDetection() {
           )}
         </div>
 
-        {/* Real-time Detections Side Panel (Collapsible, Dual Tabs: Objects & Traffic) */}
+        {/* Real-time Detections Side Panel: Dedicated Vehicle Surveillance & OCR */}
         {isSidePanelOpen && !isFullscreen && (
           <div className="rounded-xl pro-card p-4 flex flex-col justify-between space-y-3 shadow-sm transition-all duration-300">
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-1.5">
-                  <h3 className="font-bold text-sm text-zinc-950 tracking-tight">Active Surveillance</h3>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-700 font-mono font-semibold border border-zinc-200">
-                    {aiMode === 'objects' ? `${activeObjects.length} objects` : aiMode === 'traffic' ? `${activeVehicles.length} vehicles` : `${activeObjects.length + activeVehicles.length} total`}
-                  </span>
+              <div className="flex items-center justify-between mb-3 pb-2 border-b border-zinc-200">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-black text-white">
+                    <Car size={15} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-zinc-950 tracking-tight">Tracked Vehicles & OCR</h3>
+                    <p className="text-[11px] text-zinc-500">Live roadway perimeter feed</p>
+                  </div>
                 </div>
-                <button
-                  onClick={() => setIsSidePanelOpen(false)}
-                  className="p-1 rounded-md text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 text-xs transition-colors"
-                  title="Hide side panel"
-                >
-                  <PanelRightClose size={14} />
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-800 font-mono font-bold border border-zinc-200">
+                    {activeVehicles.length} Active
+                  </span>
+                  <button
+                    onClick={() => setIsSidePanelOpen(false)}
+                    className="p-1 rounded-md text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 text-xs transition-colors"
+                    title="Hide side panel"
+                  >
+                    <PanelRightClose size={14} />
+                  </button>
+                </div>
               </div>
 
-              {/* Sub-Tab Navigation Header */}
-              <div className="grid grid-cols-2 gap-1 bg-zinc-100 p-1 rounded-lg border border-zinc-200 mb-3">
-                <button
-                  onClick={() => setSidePanelTab('objects')}
-                  className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                    (sidePanelTab === 'objects' || (sidePanelTab === 'auto' && aiMode !== 'traffic'))
-                      ? 'bg-zinc-950 text-white shadow-sm'
-                      : 'text-zinc-600 hover:text-zinc-950'
-                  }`}
-                >
-                  <Box size={13} />
-                  <span>General Objects</span>
-                  <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-semibold ${
-                    (sidePanelTab === 'objects' || (sidePanelTab === 'auto' && aiMode !== 'traffic'))
-                      ? 'bg-white text-zinc-950'
-                      : 'bg-zinc-200 text-zinc-700'
-                  }`}>
-                    {activeObjects.length}
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => setSidePanelTab('traffic')}
-                  className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                    (sidePanelTab === 'traffic' || (sidePanelTab === 'auto' && aiMode === 'traffic'))
-                      ? 'bg-zinc-950 text-white shadow-sm'
-                      : 'text-zinc-600 hover:text-zinc-950'
-                  }`}
-                >
-                  <Car size={13} />
-                  <span>Vehicles & OCR</span>
-                  <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-semibold ${
-                    (sidePanelTab === 'traffic' || (sidePanelTab === 'auto' && aiMode === 'traffic'))
-                      ? 'bg-white text-zinc-950'
-                      : 'bg-zinc-200 text-zinc-700'
-                  }`}>
-                    {activeVehicles.length}
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            {/* TAB CONTENT 1: GENERAL OBJECTS */}
-            {(sidePanelTab === 'objects' || (sidePanelTab === 'auto' && aiMode !== 'traffic')) && (
-              <div className="flex-1 flex flex-col space-y-3 overflow-hidden">
-                {/* Real-time Category Breakdown Chips */}
-                {objectCounts.breakdown && Object.keys(objectCounts.breakdown).length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 p-2 rounded-lg bg-zinc-50 border border-zinc-200">
-                    {Object.entries(objectCounts.breakdown).map(([name, cnt]) => (
-                      <span
-                        key={name}
-                        className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-white border border-zinc-200 text-zinc-800 font-medium shadow-2xs"
-                      >
-                        <span>{name}</span>
-                        <span className="font-bold text-zinc-950 bg-zinc-100 px-1 rounded text-[10px] font-mono">
-                          ×{cnt}
+              {/* Active Vehicles List */}
+              <div className="flex-1 overflow-y-auto max-h-[440px] space-y-2 pr-1">
+                {activeVehicles.length > 0 ? (
+                  activeVehicles.map((v, idx) => (
+                    <div
+                      key={v.track_id || idx}
+                      className={`p-3 rounded-lg border transition-all ${
+                        v.has_violation
+                          ? 'bg-rose-50/70 border-rose-200 shadow-2xs'
+                          : v.power_type === 'Electric'
+                          ? 'bg-emerald-50/40 border-emerald-200'
+                          : 'bg-zinc-50 border-zinc-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {v.vehicle_type === 'Motorcycle' ? (
+                            <Bike size={15} className="text-zinc-700" />
+                          ) : v.vehicle_type === 'Truck' ? (
+                            <Truck size={15} className="text-zinc-700" />
+                          ) : v.vehicle_type === 'Bus' ? (
+                            <Bus size={15} className="text-zinc-700" />
+                          ) : (
+                            <Car size={15} className="text-zinc-700" />
+                          )}
+                          <span className="font-bold text-xs text-zinc-950">
+                            #{v.track_id} {v.vehicle_type}
+                          </span>
+                        </div>
+                        <span className="text-xs font-mono text-zinc-700 font-semibold">
+                          {Math.round(v.confidence * 100)}%
                         </span>
-                      </span>
-                    ))}
+                      </div>
+
+                      <div className="mt-2.5 grid grid-cols-2 gap-2 text-[11px]">
+                        {/* Plate Status */}
+                        <div className="p-2 rounded-md bg-white border border-zinc-200 shadow-2xs">
+                          <span className="text-zinc-500 block text-[10px]">License Plate</span>
+                          <span className="font-mono text-zinc-950 font-bold truncate block">
+                            {v.plate?.detected ? v.plate.plate_number : 'None'}
+                          </span>
+                        </div>
+
+                        {/* Power Type */}
+                        <div className="p-2 rounded-md bg-white border border-zinc-200 shadow-2xs">
+                          <span className="text-zinc-500 block text-[10px]">Propulsion</span>
+                          <span className={`font-semibold ${v.power_type === 'Electric' ? 'text-emerald-700 font-bold' : 'text-zinc-800'}`}>
+                            {v.power_type}
+                          </span>
+                        </div>
+
+                        {/* Helmet Status for two-wheelers */}
+                        {v.helmet && v.helmet.rider_detected && (
+                          <div className="col-span-2 p-2 rounded-md bg-white border border-zinc-200 shadow-2xs flex items-center justify-between">
+                            <span className="text-zinc-500">Helmet Check:</span>
+                            <span className={`font-semibold ${
+                              v.helmet.helmet_status === 'YES' ? 'text-emerald-700 font-bold' : 'text-rose-700 font-bold'
+                            }`}>
+                              {v.helmet.helmet_status === 'YES' ? 'Verified (Helmet)' : 'No Helmet Violation'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-16 text-center text-zinc-500 text-xs flex flex-col items-center justify-center space-y-2">
+                    <Car size={32} className="text-zinc-400" />
+                    <span className="font-medium text-zinc-700">No vehicles inside perimeter</span>
+                    <span className="text-[11px] text-zinc-400 max-w-[200px]">Live cars, bikes, buses, and trucks will appear here with license plate OCR telemetry.</span>
                   </div>
                 )}
-
-                {/* Filtered Objects List */}
-                <div className="flex-1 overflow-y-auto max-h-[380px] space-y-2 pr-1">
-                  {(() => {
-                    const filtered = activeObjects.filter(obj => {
-                      if (selectedCategory !== 'All' && obj.category !== selectedCategory) return false;
-                      if (searchQuery.trim()) {
-                        const q = searchQuery.toLowerCase();
-                        return (
-                          obj.name.toLowerCase().includes(q) ||
-                          obj.category.toLowerCase().includes(q)
-                        );
-                      }
-                      return true;
-                    });
-
-                    if (filtered.length === 0) {
-                      return (
-                        <div className="py-14 text-center text-zinc-500 text-xs flex flex-col items-center justify-center space-y-2">
-                          <Box size={28} className="text-zinc-400" />
-                          <span>
-                            {searchQuery
-                              ? `No objects matching "${searchQuery}"`
-                              : `No objects in category "${selectedCategory}".`}
-                          </span>
-                        </div>
-                      );
-                    }
-
-                    return filtered.map((obj, idx) => {
-                      const badge = getCategoryBadgeClass(obj.category);
-                      const isMatch = searchQuery && (
-                        obj.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        obj.category.toLowerCase().includes(searchQuery.toLowerCase())
-                      );
-
-                      return (
-                        <div
-                          key={obj.id || idx}
-                          className={`p-3 rounded-lg border transition-all ${
-                            isMatch
-                              ? 'bg-amber-50/50 border-amber-400 shadow-sm ring-1 ring-amber-400/30'
-                              : 'bg-zinc-50 border-zinc-200 hover:bg-zinc-100/70'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className={`w-2 h-2 rounded-full ${badge.dot}`} />
-                              <span className="font-bold text-xs text-zinc-950 capitalize tracking-wide">
-                                {obj.name}
-                              </span>
-                              <span className={`text-[10px] px-1.5 py-0.2 rounded border font-semibold ${badge.pill}`}>
-                                {obj.category}
-                              </span>
-                            </div>
-                            <span className="text-xs font-mono font-bold text-emerald-700">
-                              {Math.round(obj.confidence)}%
-                            </span>
-                          </div>
-
-                          {/* Confidence bar */}
-                          <div className="w-full bg-zinc-200 rounded-full h-1 mt-2 overflow-hidden">
-                            <div
-                              className="bg-emerald-600 h-1 rounded-full transition-all duration-300"
-                              style={{ width: `${Math.min(100, Math.max(5, obj.confidence))}%` }}
-                            />
-                          </div>
-
-                          {/* Bounding box telemetry footer */}
-                          {obj.bbox && (
-                            <div className="mt-2 text-[10px] font-mono text-zinc-500 flex items-center justify-between">
-                              <span>Box: [{obj.bbox.slice(0, 4).join(', ')}]</span>
-                              <span>Area: {Math.max(0, (obj.bbox[2] - obj.bbox[0]) * (obj.bbox[3] - obj.bbox[1]))}px</span>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    });
-                  })()}
-                </div>
               </div>
-            )}
-
-            {/* TAB CONTENT 2: VEHICLES & ROAD SURVEILLANCE */}
-            {(sidePanelTab === 'traffic' || (sidePanelTab === 'auto' && aiMode === 'traffic')) && (
-              <div className="flex-1 flex flex-col space-y-3 overflow-hidden">
-                <div className="flex-1 overflow-y-auto max-h-[380px] space-y-2 pr-1">
-                  {activeVehicles.length > 0 ? (
-                    activeVehicles.map((v, idx) => (
-                      <div
-                        key={v.track_id || idx}
-                        className={`p-3 rounded-lg border transition-all ${
-                          v.has_violation
-                            ? 'bg-rose-50/70 border-rose-200 shadow-2xs'
-                            : v.power_type === 'Electric'
-                            ? 'bg-emerald-50/40 border-emerald-200'
-                            : 'bg-zinc-50 border-zinc-200'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {v.vehicle_type === 'Motorcycle' ? (
-                              <Bike size={15} className="text-zinc-700" />
-                            ) : v.vehicle_type === 'Truck' ? (
-                              <Truck size={15} className="text-zinc-700" />
-                            ) : v.vehicle_type === 'Bus' ? (
-                              <Bus size={15} className="text-zinc-700" />
-                            ) : (
-                              <Car size={15} className="text-zinc-700" />
-                            )}
-                            <span className="font-bold text-xs text-zinc-950">
-                              #{v.track_id} {v.vehicle_type}
-                            </span>
-                          </div>
-                          <span className="text-xs font-mono text-zinc-700 font-semibold">
-                            {Math.round(v.confidence * 100)}%
-                          </span>
-                        </div>
-
-                        <div className="mt-2.5 grid grid-cols-2 gap-2 text-[11px]">
-                          {/* Plate Status */}
-                          <div className="p-2 rounded-md bg-white border border-zinc-200 shadow-2xs">
-                            <span className="text-zinc-500 block text-[10px]">License Plate</span>
-                            <span className="font-mono text-zinc-950 font-bold truncate block">
-                              {v.plate?.detected ? v.plate.plate_number : 'None'}
-                            </span>
-                          </div>
-
-                          {/* Power Type */}
-                          <div className="p-2 rounded-md bg-white border border-zinc-200 shadow-2xs">
-                            <span className="text-zinc-500 block text-[10px]">Propulsion</span>
-                            <span className={`font-semibold ${v.power_type === 'Electric' ? 'text-emerald-700 font-bold' : 'text-zinc-800'}`}>
-                              {v.power_type}
-                            </span>
-                          </div>
-
-                          {/* Helmet Status for two-wheelers */}
-                          {v.helmet && v.helmet.rider_detected && (
-                            <div className="col-span-2 p-2 rounded-md bg-white border border-zinc-200 shadow-2xs flex items-center justify-between">
-                              <span className="text-zinc-500">Helmet Check:</span>
-                              <span className={`font-semibold ${
-                                v.helmet.helmet_status === 'YES' ? 'text-emerald-700 font-bold' : 'text-rose-700 font-bold'
-                              }`}>
-                                {v.helmet.helmet_status === 'YES' ? 'Verified (Helmet)' : 'No Helmet Violation'}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="py-14 text-center text-zinc-500 text-xs flex flex-col items-center justify-center space-y-2">
-                      <Layers size={28} className="text-zinc-400" />
-                      <span>No vehicles currently inside surveillance perimeter.</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            </div>
 
             {/* Quick Status Legend */}
             <div className="p-2.5 rounded-lg bg-zinc-50 border border-zinc-200 text-[11px] space-y-1 text-zinc-600 font-medium">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span>Compliant / Verified</span>
+                  <span>Compliant</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-rose-500" />
                   <span>Violation</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-500" />
-                  <span>People</span>
+                  <span className="w-2 h-2 rounded-full bg-cyan-500" />
+                  <span>Electric (EV)</span>
                 </div>
               </div>
             </div>
