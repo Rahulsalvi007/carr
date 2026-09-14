@@ -46,7 +46,11 @@ app.include_router(websocket_live.router)
 # Mount static snapshot directory for violations
 app.mount("/api/snapshots", StaticFiles(directory=str(settings.VIOLATIONS_PATH)), name="snapshots")
 app.mount("/api/outputs", StaticFiles(directory=str(settings.OUTPUTS_PATH)), name="outputs")
-app.mount("/api/samples", StaticFiles(directory=str(BASE_DIR / "sample_media")), name="samples")
+
+# Mount sample media only if directory exists
+_sample_dir = BASE_DIR / "sample_media"
+_sample_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/api/samples", StaticFiles(directory=str(_sample_dir)), name="samples")
 
 
 @app.get("/")
