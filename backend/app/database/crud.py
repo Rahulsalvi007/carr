@@ -187,6 +187,27 @@ def delete_violation(db: Session, violation_id: int) -> bool:
         return True
     return False
 
+def bulk_delete_violations(db: Session, ids: List[int]) -> int:
+    if not ids:
+        return 0
+    deleted_count = db.query(Violation).filter(Violation.id.in_(ids)).delete(synchronize_session=False)
+    db.commit()
+    return deleted_count
+
+def clear_all_violations(
+    db: Session,
+    violation_type: Optional[str] = None,
+    status: Optional[str] = None
+) -> int:
+    query = db.query(Violation)
+    if violation_type and violation_type.upper() != "ALL":
+        query = query.filter(Violation.violation_type == violation_type)
+    if status and status.upper() != "ALL":
+        query = query.filter(Violation.status == status)
+    deleted_count = query.delete(synchronize_session=False)
+    db.commit()
+    return deleted_count
+
 def get_vehicles(db: Session, skip: int = 0, limit: int = 50):
     total = db.query(Vehicle).count()
     vehicles = db.query(Vehicle).order_by(desc(Vehicle.last_seen)).offset(skip).limit(limit).all()

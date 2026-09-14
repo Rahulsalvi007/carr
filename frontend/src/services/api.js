@@ -14,7 +14,11 @@ export const updateConfig = (data) => api.post('/config', data);
 export const getAnalytics = (days = 7) => api.get(`/analytics?days=${days}`);
 
 export const getViolations = (params) => api.get('/violations', { params });
+export const getViolation = (id) => api.get(`/violations/${id}`);
 export const updateViolationStatus = (id, status) => api.patch(`/violations/${id}/status`, { status });
+export const deleteViolation = (id) => api.delete(`/violations/${id}`);
+export const bulkDeleteViolations = (ids) => api.post('/violations/bulk-delete', { ids });
+export const clearAllViolations = (params = {}) => api.delete('/violations/clear', { params });
 
 export const getVehicles = (params) => api.get('/vehicles', { params });
 export const getDetectionsHistory = (params) => api.get('/detections', { params });

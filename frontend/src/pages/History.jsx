@@ -22,7 +22,8 @@ import {
   Database,
   Sliders,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  AlertCircle
 } from 'lucide-react';
 import {
   getDetectionsHistory,
@@ -49,7 +50,7 @@ export default function History() {
   const [editingRecord, setEditingRecord] = useState(null);
   const [editFormData, setEditFormData] = useState({
     vehicle_type: '',
-    confidence: 0.8,
+    confidence: 85,
     source_type: 'image',
     notes: ''
   });
@@ -249,26 +250,26 @@ export default function History() {
 
   const getVehicleIcon = (type) => {
     const t = (type || '').toLowerCase();
-    if (t.includes('motorcycle') || t.includes('bike')) return <Bike size={15} className="text-zinc-300" />;
-    if (t.includes('truck')) return <Truck size={15} className="text-zinc-300" />;
-    if (t.includes('bus')) return <Bus size={15} className="text-zinc-300" />;
-    return <Car size={15} className="text-zinc-300" />;
+    if (t.includes('motorcycle') || t.includes('bike')) return <Bike size={15} className="text-zinc-700" />;
+    if (t.includes('truck')) return <Truck size={15} className="text-zinc-700" />;
+    if (t.includes('bus')) return <Bus size={15} className="text-zinc-700" />;
+    return <Car size={15} className="text-zinc-700" />;
   };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300 relative pb-12">
       {/* Toast Notification */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl bg-zinc-900 border-zinc-700 text-white animate-in slide-in-from-bottom-5 duration-200">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl bg-white border-zinc-200 text-zinc-900 animate-in slide-in-from-bottom-5 duration-200">
           {toast.type === 'error' ? (
-            <AlertTriangle size={18} className="text-red-400 shrink-0" />
+            <AlertCircle size={18} className="text-red-500 shrink-0" />
           ) : (
-            <Check size={18} className="text-emerald-400 shrink-0" />
+            <Check size={18} className="text-emerald-600 shrink-0" />
           )}
-          <span className="text-xs font-medium">{toast.message}</span>
+          <span className="text-xs font-semibold">{toast.message}</span>
           <button
             onClick={() => setToast(null)}
-            className="text-zinc-400 hover:text-white ml-2"
+            className="text-zinc-400 hover:text-zinc-900 ml-2"
           >
             <X size={14} />
           </button>
@@ -278,8 +279,8 @@ export default function History() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white m-0">Detection Audit Trail & History</h1>
-          <p className="text-xs text-zinc-400 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-950 m-0">Detection Audit Trail & History</h1>
+          <p className="text-xs text-zinc-500 mt-1">
             Manage, review, edit, and clean vehicle detection records and audit notes
           </p>
         </div>
@@ -288,7 +289,7 @@ export default function History() {
           <button
             onClick={() => setShowClearAllModal(true)}
             disabled={records.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 border border-red-900/50 text-xs font-semibold shadow-sm disabled:opacity-40 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-semibold shadow-xs disabled:opacity-40 transition-colors"
             title="Clear all detection logs"
           >
             <Trash2 size={13} />
@@ -298,7 +299,7 @@ export default function History() {
           <button
             onClick={exportToCSV}
             disabled={records.length === 0}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white hover:bg-zinc-200 text-black text-xs font-semibold shadow-sm disabled:opacity-50 transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-black hover:bg-zinc-800 text-white text-xs font-semibold shadow-xs disabled:opacity-50 transition-colors"
           >
             <Download size={14} />
             <span>Export CSV</span>
@@ -307,7 +308,7 @@ export default function History() {
           <button
             onClick={fetchRecords}
             disabled={isLoading}
-            className="p-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 transition-colors"
+            className="p-2 rounded-lg bg-white hover:bg-zinc-100 text-zinc-700 border border-zinc-200 shadow-xs transition-colors"
             title="Refresh logs"
           >
             <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />
@@ -317,46 +318,46 @@ export default function History() {
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="pro-card p-3 rounded-xl flex items-center justify-between">
+        <div className="pro-card p-3.5 rounded-xl flex items-center justify-between">
           <div>
-            <div className="text-[11px] text-zinc-400 font-medium">Total In Database</div>
-            <div className="text-lg font-bold text-white font-mono mt-0.5">{total}</div>
+            <div className="text-[11px] text-zinc-500 font-medium">Total In Database</div>
+            <div className="text-xl font-bold text-zinc-950 font-mono mt-0.5">{total}</div>
           </div>
-          <div className="p-2 rounded-lg bg-zinc-900 text-zinc-400 border border-zinc-800">
+          <div className="p-2 rounded-xl bg-zinc-100 text-zinc-600">
             <Database size={16} />
           </div>
         </div>
 
-        <div className="pro-card p-3 rounded-xl flex items-center justify-between">
+        <div className="pro-card p-3.5 rounded-xl flex items-center justify-between">
           <div>
-            <div className="text-[11px] text-zinc-400 font-medium">Loaded On Page</div>
-            <div className="text-lg font-bold text-white font-mono mt-0.5">{filtered.length}</div>
+            <div className="text-[11px] text-zinc-500 font-medium">Loaded On Page</div>
+            <div className="text-xl font-bold text-zinc-950 font-mono mt-0.5">{filtered.length}</div>
           </div>
-          <div className="p-2 rounded-lg bg-zinc-900 text-zinc-400 border border-zinc-800">
+          <div className="p-2 rounded-xl bg-zinc-100 text-zinc-600">
             <Layers size={16} />
           </div>
         </div>
 
-        <div className="pro-card p-3 rounded-xl flex items-center justify-between">
+        <div className="pro-card p-3.5 rounded-xl flex items-center justify-between">
           <div>
-            <div className="text-[11px] text-zinc-400 font-medium">Selected For Bulk</div>
-            <div className={`text-lg font-bold font-mono mt-0.5 ${selectedIds.length > 0 ? 'text-amber-400' : 'text-zinc-500'}`}>
+            <div className="text-[11px] text-zinc-500 font-medium">Selected For Bulk</div>
+            <div className={`text-xl font-bold font-mono mt-0.5 ${selectedIds.length > 0 ? 'text-amber-600' : 'text-zinc-400'}`}>
               {selectedIds.length}
             </div>
           </div>
-          <div className="p-2 rounded-lg bg-zinc-900 text-zinc-400 border border-zinc-800">
+          <div className="p-2 rounded-xl bg-zinc-100 text-zinc-600">
             <CheckSquare size={16} />
           </div>
         </div>
 
-        <div className="pro-card p-3 rounded-xl flex items-center justify-between">
+        <div className="pro-card p-3.5 rounded-xl flex items-center justify-between">
           <div>
-            <div className="text-[11px] text-zinc-400 font-medium">Active Type Filter</div>
-            <div className="text-sm font-semibold text-zinc-200 mt-1 capitalize truncate max-w-[100px]">
+            <div className="text-[11px] text-zinc-500 font-medium">Active Type Filter</div>
+            <div className="text-sm font-bold text-zinc-900 mt-1 capitalize truncate max-w-[100px]">
               {filterVehicle}
             </div>
           </div>
-          <div className="p-2 rounded-lg bg-zinc-900 text-zinc-400 border border-zinc-800">
+          <div className="p-2 rounded-xl bg-zinc-100 text-zinc-600">
             <Sliders size={16} />
           </div>
         </div>
@@ -365,22 +366,22 @@ export default function History() {
       {/* Filter and Search Bar */}
       <div className="pro-card p-3 rounded-xl flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
           <input
             type="text"
             placeholder="Search logs by ID, vehicle type, source, or audit notes..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700"
+            className="w-full bg-white border border-zinc-200 rounded-lg pl-9 pr-3 py-2 text-xs text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-zinc-400 shadow-xs"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
-          <Filter size={15} className="text-zinc-500 hidden sm:block" />
+          <Filter size={15} className="text-zinc-400 hidden sm:block" />
           <select
             value={filterVehicle}
             onChange={(e) => { setFilterVehicle(e.target.value); setPage(1); }}
-            className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-300 focus:outline-none focus:border-zinc-700 flex-1 sm:flex-none"
+            className="bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-700 focus:outline-none focus:border-zinc-400 shadow-xs flex-1 sm:flex-none"
           >
             <option value="ALL">All Vehicle Types</option>
             <option value="Car">Cars</option>
@@ -394,7 +395,7 @@ export default function History() {
           <select
             value={filterSource}
             onChange={(e) => setFilterSource(e.target.value)}
-            className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-300 focus:outline-none focus:border-zinc-700 flex-1 sm:flex-none"
+            className="bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-700 focus:outline-none focus:border-zinc-400 shadow-xs flex-1 sm:flex-none"
           >
             <option value="ALL">All Sources</option>
             <option value="image">Image Upload</option>
@@ -407,10 +408,10 @@ export default function History() {
 
       {/* Floating Bulk Selection Action Banner */}
       {selectedIds.length > 0 && (
-        <div className="bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-2.5 flex items-center justify-between shadow-xl animate-in slide-in-from-top-2 duration-200">
+        <div className="bg-white border border-zinc-300 rounded-xl px-4 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-top-2 duration-200">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-xs font-semibold text-white">
+            <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+            <span className="text-xs font-semibold text-zinc-900">
               {selectedIds.length} {selectedIds.length === 1 ? 'record' : 'records'} selected
             </span>
           </div>
@@ -418,13 +419,13 @@ export default function History() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSelectedIds([])}
-              className="px-2.5 py-1 rounded-lg text-xs text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+              className="px-2.5 py-1 rounded-lg text-xs text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors"
             >
               Deselect All
             </button>
             <button
               onClick={() => setShowBulkDeleteModal(true)}
-              className="flex items-center gap-1 px-3 py-1 rounded-lg bg-red-900/60 hover:bg-red-800 text-red-200 text-xs font-semibold transition-all border border-red-700/60"
+              className="flex items-center gap-1 px-3 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-xs transition-all"
             >
               <Trash2 size={13} />
               <span>Delete Selected</span>
@@ -434,21 +435,21 @@ export default function History() {
       )}
 
       {/* Detections Table */}
-      <div className="pro-card rounded-xl overflow-hidden shadow-sm">
+      <div className="pro-card rounded-2xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-zinc-950 text-zinc-400 uppercase tracking-wider font-semibold border-b border-zinc-800 text-[11px]">
+            <thead className="bg-zinc-50 text-zinc-600 uppercase tracking-wider font-semibold border-b border-zinc-200 text-[11px]">
               <tr>
                 <th className="px-4 py-3.5 w-10 text-center">
                   <button
                     onClick={toggleSelectAll}
-                    className="p-1 hover:text-white transition-colors"
+                    className="p-1 hover:text-black transition-colors"
                     title="Select all on page"
                   >
                     {allOnPageSelected ? (
-                      <CheckSquare size={16} className="text-white" />
+                      <CheckSquare size={16} className="text-black" />
                     ) : (
-                      <Square size={16} className={someOnPageSelected ? "text-amber-400" : "text-zinc-600"} />
+                      <Square size={16} className={someOnPageSelected ? "text-amber-500" : "text-zinc-400"} />
                     )}
                   </button>
                 </th>
@@ -461,65 +462,65 @@ export default function History() {
                 <th className="px-4 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/70 text-zinc-300">
+            <tbody className="divide-y divide-zinc-200 text-zinc-800 bg-white">
               {filtered.length > 0 ? (
                 filtered.map((r) => {
                   const isSelected = selectedIds.includes(r.id);
                   return (
                     <tr
                       key={r.id}
-                      className={`transition-colors ${isSelected ? 'bg-zinc-800/30' : 'hover:bg-zinc-900/40'}`}
+                      className={`transition-colors ${isSelected ? 'bg-zinc-100/70' : 'hover:bg-zinc-50'}`}
                     >
                       <td className="px-4 py-3.5 text-center">
                         <button
                           onClick={() => toggleSelect(r.id)}
-                          className="p-1 hover:text-white transition-colors"
+                          className="p-1 hover:text-black transition-colors"
                         >
                           {isSelected ? (
-                            <CheckSquare size={16} className="text-white" />
+                            <CheckSquare size={16} className="text-black" />
                           ) : (
-                            <Square size={16} className="text-zinc-600" />
+                            <Square size={16} className="text-zinc-400" />
                           )}
                         </button>
                       </td>
 
-                      <td className="px-4 py-3.5 font-mono text-zinc-400">
+                      <td className="px-4 py-3.5 font-mono text-zinc-500 font-semibold">
                         #{r.id}
                       </td>
 
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-2">
                           {getVehicleIcon(r.vehicle_type)}
-                          <span className="font-medium text-white">{r.vehicle_type}</span>
+                          <span className="font-semibold text-zinc-900">{r.vehicle_type}</span>
                         </div>
                       </td>
 
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-2">
-                          <div className="w-14 bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                          <div className="w-14 bg-zinc-200 rounded-full h-1.5 overflow-hidden">
                             <div
-                              className="bg-white h-1.5 rounded-full"
+                              className="bg-black h-1.5 rounded-full"
                               style={{ width: `${Math.round((r.confidence || 0) * 100)}%` }}
                             />
                           </div>
-                          <span className="font-mono text-zinc-400">{Math.round((r.confidence || 0) * 100)}%</span>
+                          <span className="font-mono text-zinc-600 font-semibold">{Math.round((r.confidence || 0) * 100)}%</span>
                         </div>
                       </td>
 
                       <td className="px-4 py-3.5">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-zinc-900 text-zinc-300 border border-zinc-800">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-zinc-100 text-zinc-700 border border-zinc-200">
                           {r.source_type || 'image'}
                         </span>
                       </td>
 
                       <td className="px-4 py-3.5 max-w-[200px]">
                         {r.notes ? (
-                          <div className="flex items-center gap-1.5 text-zinc-300 truncate" title={r.notes}>
-                            <FileText size={12} className="text-zinc-400 shrink-0" />
+                          <div className="flex items-center gap-1.5 text-zinc-700 truncate" title={r.notes}>
+                            <FileText size={12} className="text-zinc-500 shrink-0" />
                             <span className="truncate text-[11px]">{r.notes}</span>
                           </div>
                         ) : (
-                          <span className="text-zinc-600 text-[11px] italic">No notes</span>
+                          <span className="text-zinc-400 text-[11px] italic">No notes</span>
                         )}
                       </td>
 
@@ -531,14 +532,14 @@ export default function History() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => handleOpenEdit(r)}
-                            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                            className="p-1.5 rounded-lg text-zinc-500 hover:text-black hover:bg-zinc-100 transition-colors"
                             title="Edit Record"
                           >
                             <Edit3 size={14} />
                           </button>
                           <button
                             onClick={() => setDeletingRecord(r)}
-                            className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-950/40 transition-colors"
+                            className="p-1.5 rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                             title="Delete Record"
                           >
                             <Trash2 size={14} />
@@ -560,22 +561,22 @@ export default function History() {
         </div>
 
         {/* Pagination Controls */}
-        <div className="px-5 py-3 bg-zinc-950 border-t border-zinc-800 flex items-center justify-between text-xs text-zinc-400">
+        <div className="px-5 py-3 bg-zinc-50 border-t border-zinc-200 flex items-center justify-between text-xs text-zinc-600">
           <span>Showing {records.length} of {total} total detections</span>
           <div className="flex items-center gap-2">
             <button
               disabled={page <= 1}
               onClick={() => setPage(p => Math.max(1, p - 1))}
-              className="flex items-center gap-1 px-3 py-1 rounded-md bg-zinc-900 text-zinc-300 hover:text-white border border-zinc-800 disabled:opacity-40 transition-colors"
+              className="flex items-center gap-1 px-3 py-1 rounded-md bg-white text-zinc-700 hover:text-black border border-zinc-200 shadow-xs disabled:opacity-40 transition-colors font-medium"
             >
               <ChevronLeft size={13} />
               <span>Previous</span>
             </button>
-            <span className="font-mono px-2 text-white">Page {page}</span>
+            <span className="font-mono px-2 text-zinc-900 font-semibold">Page {page}</span>
             <button
               disabled={records.length < pageSize}
               onClick={() => setPage(p => p + 1)}
-              className="flex items-center gap-1 px-3 py-1 rounded-md bg-zinc-900 text-zinc-300 hover:text-white border border-zinc-800 disabled:opacity-40 transition-colors"
+              className="flex items-center gap-1 px-3 py-1 rounded-md bg-white text-zinc-700 hover:text-black border border-zinc-200 shadow-xs disabled:opacity-40 transition-colors font-medium"
             >
               <span>Next</span>
               <ChevronRight size={13} />
@@ -586,22 +587,22 @@ export default function History() {
 
       {/* EDIT DETECTION MODAL */}
       {editingRecord && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl max-w-lg w-full overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white border border-zinc-200 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-950">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 bg-zinc-50/70">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-zinc-900 text-white border border-zinc-800">
+                <div className="p-2 rounded-xl bg-black text-white">
                   <Edit3 size={16} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm text-white">Edit Detection Record</h3>
-                  <p className="text-xs text-zinc-400">Reference ID #{editingRecord.id}</p>
+                  <h3 className="font-bold text-sm text-zinc-900">Edit Detection Record</h3>
+                  <p className="text-xs text-zinc-500 font-mono">Reference ID #{editingRecord.id}</p>
                 </div>
               </div>
               <button
                 onClick={() => setEditingRecord(null)}
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors"
               >
                 <X size={18} />
               </button>
@@ -611,11 +612,11 @@ export default function History() {
             <form onSubmit={handleSaveEdit} className="p-6 space-y-4 text-xs">
               {/* Vehicle Type */}
               <div className="space-y-1.5">
-                <label className="text-zinc-300 font-medium">Vehicle / Object Type</label>
+                <label className="text-zinc-700 font-semibold">Vehicle / Object Type</label>
                 <select
                   value={editFormData.vehicle_type}
                   onChange={(e) => setEditFormData({ ...editFormData, vehicle_type: e.target.value })}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-zinc-700"
+                  className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-zinc-900 focus:outline-none focus:border-zinc-400 shadow-xs font-medium"
                 >
                   <option value="Car">Car</option>
                   <option value="Motorcycle">Motorcycle</option>
@@ -630,8 +631,8 @@ export default function History() {
               {/* Confidence */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-zinc-300 font-medium">Confidence Score</label>
-                  <span className="font-mono text-zinc-400">{editFormData.confidence}%</span>
+                  <label className="text-zinc-700 font-semibold">Confidence Score</label>
+                  <span className="font-mono font-bold text-zinc-900">{editFormData.confidence}%</span>
                 </div>
                 <input
                   type="range"
@@ -639,17 +640,17 @@ export default function History() {
                   max="100"
                   value={editFormData.confidence}
                   onChange={(e) => setEditFormData({ ...editFormData, confidence: Number(e.target.value) })}
-                  className="w-full accent-white bg-zinc-950 cursor-pointer"
+                  className="w-full accent-black bg-zinc-200 cursor-pointer"
                 />
               </div>
 
               {/* Source Type */}
               <div className="space-y-1.5">
-                <label className="text-zinc-300 font-medium">Capture Source</label>
+                <label className="text-zinc-700 font-semibold">Capture Source</label>
                 <select
                   value={editFormData.source_type}
                   onChange={(e) => setEditFormData({ ...editFormData, source_type: e.target.value })}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-zinc-700"
+                  className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-zinc-900 focus:outline-none focus:border-zinc-400 shadow-xs font-medium"
                 >
                   <option value="image">image (Static Image Upload)</option>
                   <option value="video">video (Video Stream Upload)</option>
@@ -660,29 +661,29 @@ export default function History() {
 
               {/* Audit Notes */}
               <div className="space-y-1.5">
-                <label className="text-zinc-300 font-medium">Audit & Verification Notes</label>
+                <label className="text-zinc-700 font-semibold">Audit & Verification Notes</label>
                 <textarea
                   rows={3}
                   value={editFormData.notes}
                   onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
                   placeholder="Add administrative notes, plate verification notes, or reason for update..."
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-700 resize-none"
+                  className="w-full bg-white border border-zinc-200 rounded-lg p-3 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-zinc-400 resize-none shadow-xs font-normal"
                 />
               </div>
 
               {/* Footer Actions */}
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-zinc-800">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-zinc-200">
                 <button
                   type="button"
                   onClick={() => setEditingRecord(null)}
-                  className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white font-medium transition-colors"
+                  className="px-4 py-2 rounded-lg bg-white border border-zinc-300 hover:bg-zinc-100 text-zinc-700 font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingEdit}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white hover:bg-zinc-200 text-black font-semibold shadow-sm transition-all disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-black hover:bg-zinc-800 text-white font-semibold shadow-xs transition-all disabled:opacity-50"
                 >
                   <Save size={14} />
                   <span>{isSubmittingEdit ? 'Saving...' : 'Save Changes'}</span>
@@ -695,20 +696,20 @@ export default function History() {
 
       {/* SINGLE DELETE CONFIRMATION MODAL */}
       {deletingRecord && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl max-w-md w-full overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white border border-zinc-200 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="p-6 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-full bg-red-950/60 text-red-400 border border-red-900/50">
+                <div className="p-2.5 rounded-2xl bg-red-50 text-red-600 border border-red-200">
                   <AlertTriangle size={20} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm text-white">Delete Detection Record</h3>
-                  <p className="text-xs text-zinc-400">Record #{deletingRecord.id} • {deletingRecord.vehicle_type}</p>
+                  <h3 className="font-bold text-sm text-zinc-950">Delete Detection Record</h3>
+                  <p className="text-xs text-zinc-500 font-mono">Record #{deletingRecord.id} • {deletingRecord.vehicle_type}</p>
                 </div>
               </div>
 
-              <p className="text-xs text-zinc-300 leading-relaxed">
+              <p className="text-xs text-zinc-600 leading-relaxed">
                 Are you sure you want to permanently delete this detection log? This action cannot be undone.
               </p>
 
@@ -716,7 +717,7 @@ export default function History() {
                 <button
                   type="button"
                   onClick={() => setDeletingRecord(null)}
-                  className="px-3.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium transition-colors"
+                  className="px-3.5 py-1.5 rounded-lg bg-white border border-zinc-300 hover:bg-zinc-100 text-zinc-700 text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
@@ -724,7 +725,7 @@ export default function History() {
                   type="button"
                   disabled={isDeleting}
                   onClick={handleConfirmSingleDelete}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-xs transition-all disabled:opacity-50"
                 >
                   <Trash2 size={13} />
                   <span>{isDeleting ? 'Deleting...' : 'Confirm Delete'}</span>
@@ -737,28 +738,28 @@ export default function History() {
 
       {/* BULK DELETE CONFIRMATION MODAL */}
       {showBulkDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl max-w-md w-full overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white border border-zinc-200 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="p-6 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-full bg-red-950/60 text-red-400 border border-red-900/50">
+                <div className="p-2.5 rounded-2xl bg-red-50 text-red-600 border border-red-200">
                   <AlertTriangle size={20} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm text-white">Delete Selected Records</h3>
-                  <p className="text-xs text-zinc-400">{selectedIds.length} records selected</p>
+                  <h3 className="font-bold text-sm text-zinc-950">Delete Selected Records</h3>
+                  <p className="text-xs text-zinc-500">{selectedIds.length} records selected</p>
                 </div>
               </div>
 
-              <p className="text-xs text-zinc-300 leading-relaxed">
-                Are you sure you want to delete these <strong className="text-white">{selectedIds.length}</strong> selected records? This bulk operation is irreversible.
+              <p className="text-xs text-zinc-600 leading-relaxed">
+                Are you sure you want to delete these <strong className="text-zinc-950">{selectedIds.length}</strong> selected records? This bulk operation is irreversible.
               </p>
 
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowBulkDeleteModal(false)}
-                  className="px-3.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium transition-colors"
+                  className="px-3.5 py-1.5 rounded-lg bg-white border border-zinc-300 hover:bg-zinc-100 text-zinc-700 text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
@@ -766,7 +767,7 @@ export default function History() {
                   type="button"
                   disabled={isBulkDeleting}
                   onClick={handleConfirmBulkDelete}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-xs transition-all disabled:opacity-50"
                 >
                   <Trash2 size={13} />
                   <span>{isBulkDeleting ? 'Deleting...' : `Delete ${selectedIds.length} Records`}</span>
@@ -779,24 +780,24 @@ export default function History() {
 
       {/* CLEAR ALL LOGS CONFIRMATION MODAL */}
       {showClearAllModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl max-w-md w-full overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white border border-zinc-200 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="p-6 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-full bg-red-950/60 text-red-400 border border-red-900/50">
+                <div className="p-2.5 rounded-2xl bg-red-50 text-red-600 border border-red-200">
                   <AlertTriangle size={20} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm text-white">Clear All Detection History</h3>
-                  <p className="text-xs text-zinc-400">Database Purge Operation</p>
+                  <h3 className="font-bold text-sm text-zinc-950">Clear All Detection History</h3>
+                  <p className="text-xs text-zinc-500">Database Purge Operation</p>
                 </div>
               </div>
 
-              <p className="text-xs text-zinc-300 leading-relaxed">
+              <p className="text-xs text-zinc-600 leading-relaxed">
                 {filterVehicle !== 'ALL' ? (
-                  <>Are you sure you want to delete all <strong className="text-white">{filterVehicle}</strong> detection records from the system?</>
+                  <>Are you sure you want to delete all <strong className="text-zinc-950">{filterVehicle}</strong> detection records from the system?</>
                 ) : (
-                  <>Are you sure you want to permanently clear the <strong className="text-white">entire detection history</strong>? All logs and audit notes will be permanently removed.</>
+                  <>Are you sure you want to permanently clear the <strong className="text-zinc-950">entire detection history</strong>? All logs and audit notes will be permanently removed.</>
                 )}
               </p>
 
@@ -804,7 +805,7 @@ export default function History() {
                 <button
                   type="button"
                   onClick={() => setShowClearAllModal(false)}
-                  className="px-3.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium transition-colors"
+                  className="px-3.5 py-1.5 rounded-lg bg-white border border-zinc-300 hover:bg-zinc-100 text-zinc-700 text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
@@ -812,7 +813,7 @@ export default function History() {
                   type="button"
                   disabled={isClearingAll}
                   onClick={handleConfirmClearAll}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-xs transition-all disabled:opacity-50"
                 >
                   <Trash2 size={13} />
                   <span>{isClearingAll ? 'Clearing...' : 'Yes, Purge History'}</span>

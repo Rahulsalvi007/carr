@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List
 import datetime
 from pydantic import BaseModel
 from backend.app.database.connection import get_db
@@ -12,6 +12,9 @@ router = APIRouter(prefix="", tags=["Violations"])
 
 class StatusUpdate(BaseModel):
     status: str
+
+class BulkDeleteViolationsRequest(BaseModel):
+    ids: List[int]
 
 @router.get("/violations")
 def list_violations(
@@ -71,6 +74,31 @@ def update_status(
         "status": "success",
         "violation_id": updated.id,
         "new_status": updated.status
+    }
+
+@router.delete("/violations/clear")
+def clear_all_violations(
+    violation_type: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    count = crud.clear_all_violations(db, violation_type=violation_type, status=status)
+    return {
+        "status": "success",
+        "deleted_count": count,
+        "message": f"Cleared {count} violation records."
+    }
+
+@router.post("/violations/bulk-delete")
+def bulk_delete_violations(
+    payload: BulkDeleteViolationsRequest,
+    db: Session = Depends(get_db)
+):
+    count = crud.bulk_delete_violations(db, ids=payload.ids)
+    return {
+        "status": "success",
+        "deleted_count": count,
+        "message": f"{count} violations deleted successfully."
     }
 
 @router.get("/violations/{violation_id}")

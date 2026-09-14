@@ -31,18 +31,18 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 bg-black/70 z-30 lg:hidden backdrop-blur-xs"
+          className="fixed inset-0 bg-black/40 z-30 lg:hidden backdrop-blur-xs"
         />
       )}
 
       <aside
-        className={`fixed lg:static top-0 bottom-0 left-0 z-30 w-60 bg-zinc-950 border-r border-zinc-800/80 flex flex-col justify-between transition-transform duration-200 ease-in-out ${
+        className={`fixed lg:static top-0 bottom-0 left-0 z-30 w-60 bg-white border-r border-zinc-200 flex flex-col justify-between transition-transform duration-200 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         <div className="p-3 space-y-4">
           <div className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 px-3 pt-2">
-            Surveillance
+            Surveillance & AI
           </div>
 
           <nav className="space-y-1">
@@ -58,21 +58,21 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
                   }}
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                     isActive
-                      ? 'bg-white text-black font-semibold shadow-sm'
-                      : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+                      ? 'bg-black text-white font-semibold shadow-xs'
+                      : 'text-zinc-600 hover:text-black hover:bg-zinc-100'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Icon size={16} className={isActive ? 'text-black' : 'text-zinc-400'} />
+                    <Icon size={16} className={isActive ? 'text-white' : 'text-zinc-500'} />
                     <span>{item.label}</span>
                   </div>
 
                   {item.badge && (
                     <span
-                      className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${
+                      className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
                         isActive
-                          ? 'bg-zinc-200 text-black font-bold'
-                          : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
+                          ? 'bg-zinc-800 text-zinc-100 font-bold'
+                          : 'bg-zinc-100 text-zinc-600 border border-zinc-200'
                       }`}
                     >
                       {item.badge}
@@ -85,17 +85,17 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
         </div>
 
         {/* Bottom System Info Widget */}
-        <div className="p-3.5 border-t border-zinc-800/80 bg-zinc-900/30">
-          <div className="flex items-center justify-between text-[11px] text-zinc-400 mb-1.5">
+        <div className="p-3.5 border-t border-zinc-200 bg-zinc-50/70">
+          <div className="flex items-center justify-between text-[11px] text-zinc-500 mb-1.5">
             <span>Vision Core</span>
-            <span className="font-mono text-zinc-200 text-[10px]">Dual AI: 80 Objects + OCR</span>
+            <span className="font-mono text-zinc-800 text-[10px] font-medium">Dual AI: 80 Objects + OCR</span>
           </div>
-          <div className="w-full bg-zinc-800 rounded-full h-1 overflow-hidden">
-            <div className="bg-zinc-400 h-1 rounded-full w-full" />
+          <div className="w-full bg-zinc-200 rounded-full h-1 overflow-hidden">
+            <div className="bg-zinc-800 h-1 rounded-full w-full" />
           </div>
-          <div className="mt-2 text-[10px] text-zinc-400 flex items-center justify-between">
+          <div className="mt-2 text-[10px] text-zinc-500 flex items-center justify-between">
             <span>Real-time Inference</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
           </div>
         </div>
       </aside>
