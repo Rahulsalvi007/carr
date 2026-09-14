@@ -83,6 +83,36 @@ let nextVehicleId = 1;
 let nextViolationId = 1;
 let nextDetectionId = 1;
 
+function upsertVehicle(data: {
+  vehicle_type: string;
+  plate_number?: string | null;
+  power_type?: string;
+  confidence?: number;
+}) {
+  const normPlate = data.plate_number ? data.plate_number.replace(/\s+/g, '').toUpperCase() : null;
+  const existing = normPlate ? vehicles.find(v => v.plate_number && v.plate_number.replace(/\s+/g, '').toUpperCase() === normPlate) : null;
+  if (existing) {
+    existing.last_seen = new Date().toISOString();
+    if (data.confidence && data.confidence > existing.confidence) {
+      existing.confidence = data.confidence;
+    }
+    return existing;
+  }
+  const newV: Vehicle = {
+    id: nextVehicleId++,
+    track_id: Math.floor(100 + Math.random() * 900),
+    vehicle_type: data.vehicle_type,
+    power_type: data.power_type || (data.vehicle_type.toLowerCase().includes('car') && Math.random() > 0.6 ? 'Electric' : 'Conventional/Fuel'),
+    power_type_confidence: 0.92,
+    confidence: data.confidence || 0.91,
+    plate_number: data.plate_number || null,
+    first_seen: new Date().toISOString(),
+    last_seen: new Date().toISOString(),
+  };
+  vehicles.unshift(newV);
+  return newV;
+}
+
 const now = new Date();
 const subtractMinutes = (mins: number) => new Date(now.getTime() - mins * 60000).toISOString();
 const subtractHours = (hrs: number) => new Date(now.getTime() - hrs * 3600000).toISOString();
@@ -389,7 +419,7 @@ app.post('/api/config', (req, res) => {
 });
 
 app.get('/api/analytics', (req, res) => {
-  const days = parseInt(req.query.days as string, 10) || 7;
+  const _days = parseInt(req.query.days as string, 10) || 7;
   const totalVehicles = vehicles.length;
   const carsCount = vehicles.filter(v => v.vehicle_type.toLowerCase().includes('car')).length;
   const bikesCount = vehicles.filter(v => v.vehicle_type.toLowerCase().includes('motorcycle') || v.vehicle_type.toLowerCase().includes('bike')).length;
@@ -401,11 +431,13 @@ app.get('/api/analytics', (req, res) => {
   const unknownPowerCount = totalVehicles - evsCount - fuelCount;
 
   const totalViolations = violations.length;
-  const helmetViolations = violations.filter(v => v.violation_type === 'NO_HELMET').length;
+  const helmetViolations = violations.filter(v => v.violation_type === 'NO_HELMET' && v.status !== 'DISMISSED').length;
   const missingPlateViolations = violations.filter(v => v.violation_type === 'MISSING_PLATE').length;
   const unreadablePlateViolations = violations.filter(v => v.violation_type === 'UNREADABLE_PLATE').length;
 
-  const complianceRate = bikesCount > 0 ? Math.max(0, Math.round(((bikesCount - helmetViolations) / Math.max(1, bikesCount)) * 100)) : 88.5;
+  const bikeDetectionsCount = detections.filter(d => d.vehicle_type.toLowerCase().includes('motorcycle') || d.vehicle_type.toLowerCase().includes('bike')).length;
+  const totalBikesObserved = Math.max(bikesCount, bikeDetectionsCount, 4);
+  const complianceRate = Math.min(100, Math.max(20, Math.round(((totalBikesObserved * 3 - Math.min(totalBikesObserved * 3, helmetViolations)) / (totalBikesObserved * 3)) * 100)));
 
   const hourlyTrend = Array.from({ length: 24 }, (_, i) => {
     const hourStr = `${i.toString().padStart(2, '0')}:00`;
@@ -495,12 +527,20 @@ app.patch('/api/violations/:id/status', (req, res) => {
   });
 });
 
-app.delete('/api/violations/:id', (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  const index = violations.findIndex(item => item.id === id);
-  if (index === -1) return res.status(404).json({ detail: 'Violation not found' });
-  violations.splice(index, 1);
-  res.json({ status: 'success', message: `Violation #${id} deleted successfully.` });
+app.delete('/api/violations/clear', (req, res) => {
+  const { violation_type, status } = req.query;
+  const initial = violations.length;
+  if (violation_type || status) {
+    violations = violations.filter(v => {
+      if (violation_type && violation_type !== 'ALL' && v.violation_type !== violation_type) return true;
+      if (status && status !== 'ALL' && v.status !== status) return true;
+      return false;
+    });
+  } else {
+    violations = [];
+  }
+  const count = initial - violations.length;
+  res.json({ status: 'success', deleted_count: count, message: `Cleared ${count} violation records.` });
 });
 
 app.post('/api/violations/bulk-delete', (req, res) => {
@@ -512,28 +552,72 @@ app.post('/api/violations/bulk-delete', (req, res) => {
   res.json({ status: 'success', deleted_count: count, message: `${count} violations deleted successfully.` });
 });
 
-app.delete('/api/violations/clear', (req, res) => {
-  const count = violations.length;
-  violations = [];
-  res.json({ status: 'success', deleted_count: count, message: `Cleared ${count} violation records.` });
+app.delete('/api/violations/:id', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const index = violations.findIndex(item => item.id === id);
+  if (index === -1) return res.status(404).json({ detail: 'Violation not found' });
+  violations.splice(index, 1);
+  res.json({ status: 'success', message: `Violation #${id} deleted successfully.` });
 });
 
 // Vehicles Endpoints
 app.get('/api/vehicles', (req, res) => {
+  const { search, vehicle_type, power_type } = req.query;
   const skip = parseInt(req.query.skip as string, 10) || 0;
   const limit = parseInt(req.query.limit as string, 10) || 50;
 
-  const withCounts = vehicles.map(v => ({
+  let filtered = vehicles.map(v => ({
     ...v,
-    violations_count: violations.filter(viol => viol.vehicle_id === v.id).length,
+    violations_count: violations.filter(viol => viol.vehicle_id === v.id || (v.plate_number && viol.plate_number === v.plate_number)).length,
   }));
 
+  if (search) {
+    const q = (search as string).toLowerCase().trim();
+    filtered = filtered.filter(v =>
+      (v.plate_number && v.plate_number.toLowerCase().includes(q)) ||
+      v.vehicle_type.toLowerCase().includes(q) ||
+      String(v.track_id).includes(q)
+    );
+  }
+
+  if (vehicle_type && vehicle_type !== 'ALL') {
+    const vt = (vehicle_type as string).toLowerCase();
+    filtered = filtered.filter(v => v.vehicle_type.toLowerCase().includes(vt));
+  }
+
+  if (power_type && power_type !== 'ALL') {
+    filtered = filtered.filter(v => v.power_type === power_type);
+  }
+
   res.json({
-    total: vehicles.length,
+    total: filtered.length,
     skip,
     limit,
-    vehicles: withCounts.slice(skip, skip + limit),
+    vehicles: filtered.slice(skip, skip + limit),
   });
+});
+
+app.get('/api/export/:type', (req, res) => {
+  const type = req.params.type;
+  if (type === 'violations') {
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="violations_export.csv"');
+    const header = 'ID,Vehicle Type,Plate Number,Violation Type,Confidence,Status,Timestamp,Notes\n';
+    const rows = violations.map(v =>
+      `"${v.id}","${v.vehicle_type}","${v.plate_number || 'N/A'}","${v.violation_type}","${(v.confidence * 100).toFixed(1)}%","${v.status}","${v.timestamp}","${(v.notes || '').replace(/"/g, '""')}"`
+    ).join('\n');
+    return res.send(header + rows);
+  }
+  if (type === 'vehicles') {
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="vehicles_export.csv"');
+    const header = 'ID,Track ID,Vehicle Type,Power Type,Plate Number,Confidence,First Seen,Last Seen\n';
+    const rows = vehicles.map(v =>
+      `"${v.id}","${v.track_id}","${v.vehicle_type}","${v.power_type}","${v.plate_number || 'N/A'}","${(v.confidence * 100).toFixed(1)}%","${v.first_seen}","${v.last_seen}"`
+    ).join('\n');
+    return res.send(header + rows);
+  }
+  res.status(400).json({ detail: 'Invalid export type. Supported types: violations, vehicles' });
 });
 
 // Detections History Endpoints
@@ -580,12 +664,17 @@ app.patch('/api/detections/:id', (req, res) => {
   });
 });
 
-app.delete('/api/detections/:id', (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  const index = detections.findIndex(item => item.id === id);
-  if (index === -1) return res.status(404).json({ detail: 'Detection record not found' });
-  detections.splice(index, 1);
-  res.json({ status: 'success', message: `Detection record #${id} deleted successfully` });
+app.delete('/api/detections/clear', (req, res) => {
+  const { vehicle_type } = req.query;
+  const initial = detections.length;
+  if (vehicle_type && vehicle_type !== 'ALL') {
+    const vt = (vehicle_type as string).toLowerCase();
+    detections = detections.filter(d => !d.vehicle_type.toLowerCase().includes(vt));
+  } else {
+    detections = [];
+  }
+  const count = initial - detections.length;
+  res.json({ status: 'success', deleted_count: count, message: `Cleared ${count} detection records` });
 });
 
 app.post('/api/detections/bulk-delete', (req, res) => {
@@ -597,10 +686,12 @@ app.post('/api/detections/bulk-delete', (req, res) => {
   res.json({ status: 'success', deleted_count: count, message: `${count} detection records deleted successfully` });
 });
 
-app.delete('/api/detections/clear', (req, res) => {
-  const count = detections.length;
-  detections = [];
-  res.json({ status: 'success', deleted_count: count, message: `Cleared ${count} detection records` });
+app.delete('/api/detections/:id', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const index = detections.findIndex(item => item.id === id);
+  if (index === -1) return res.status(404).json({ detail: 'Detection record not found' });
+  detections.splice(index, 1);
+  res.json({ status: 'success', message: `Detection record #${id} deleted successfully` });
 });
 
 // Detection Routes (Image, Video, Demo)
@@ -654,6 +745,18 @@ app.post('/api/detect/image', upload.single('file'), (req, res) => {
     status: 'ACTIVE',
     notes: 'Safety helmet infraction detected during uploaded image AI scan.',
   };
+
+  detectedVehicles.forEach(dv => {
+    const vRec = upsertVehicle({
+      vehicle_type: dv.vehicle_type,
+      plate_number: dv.plate?.plate_number,
+      power_type: dv.power_type,
+      confidence: dv.confidence,
+    });
+    if (dv.has_violation && newViol.plate_number === dv.plate?.plate_number) {
+      newViol.vehicle_id = vRec.id;
+    }
+  });
   violations.unshift(newViol);
 
   const newDet: DetectionRecord = {
@@ -747,10 +850,17 @@ app.get('/api/detect/demo/:sample_name', (req, res) => {
   }
 
   const violsList: Violation[] = [];
+  const vRec = upsertVehicle({
+    vehicle_type: vehicleType,
+    plate_number: plate,
+    power_type: vehicleType === 'bus' ? 'Electric' : 'Conventional/Fuel',
+    confidence: 0.94,
+  });
+
   if (hasViolation) {
     const v: Violation = {
       id: nextViolationId++,
-      vehicle_id: 2,
+      vehicle_id: vRec.id,
       vehicle_type: vehicleType,
       plate_number: plate,
       violation_type: violType,
@@ -828,7 +938,6 @@ const wss = new WebSocketServer({ server, path: '/ws/live' });
 const viewerSockets = new Set<WebSocket>();
 
 wss.on('connection', (ws) => {
-  let isViewer = false;
   let isTransmitter = false;
 
   ws.on('message', (message) => {
@@ -836,7 +945,6 @@ wss.on('connection', (ws) => {
       const data = JSON.parse(message.toString());
 
       if (data.role === 'viewer' || data.action === 'register_viewer') {
-        isViewer = true;
         viewerSockets.add(ws);
         ws.send(JSON.stringify({
           status: 'viewer_registered',
@@ -881,11 +989,18 @@ wss.on('connection', (ws) => {
           },
         ];
 
+        const vRec = upsertVehicle({
+          vehicle_type: vehType,
+          plate_number: plateNum,
+          power_type: detectedVehicles[0].power_type,
+          confidence: 0.92,
+        });
+
         const viols: any[] = [];
         if (hasViol) {
           const violRec: Violation = {
             id: nextViolationId++,
-            vehicle_id: null,
+            vehicle_id: vRec.id,
             vehicle_type: vehType,
             plate_number: plateNum,
             violation_type: 'NO_HELMET',
