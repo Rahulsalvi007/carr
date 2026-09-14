@@ -84,8 +84,8 @@ export default function Settings() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white m-0">AI Thresholds & Model Settings</h1>
-          <p className="text-xs text-zinc-400 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-950 m-0">AI Thresholds & Model Settings</h1>
+          <p className="text-xs text-zinc-500 mt-1">
             Fine-tune computer vision confidence scores, cooldowns, and model weight configurations
           </p>
         </div>
@@ -93,7 +93,7 @@ export default function Settings() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={handleReset}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white text-xs font-medium border border-zinc-800 transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white hover:bg-zinc-100 text-zinc-800 text-xs font-medium border border-zinc-300 transition-colors shadow-sm"
           >
             <RotateCcw size={13} />
             <span>Reset Defaults</span>
@@ -102,7 +102,7 @@ export default function Settings() {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-white hover:bg-zinc-200 text-black text-xs font-semibold shadow-sm disabled:opacity-50 transition-all"
+            className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-semibold shadow-sm disabled:opacity-50 transition-all"
           >
             {isSaving ? <RotateCcw size={13} className="animate-spin" /> : <Save size={13} />}
             <span>{saveSuccess ? 'Saved' : 'Save Configuration'}</span>
@@ -111,7 +111,7 @@ export default function Settings() {
       </div>
 
       {saveSuccess && (
-        <div className="p-3.5 rounded-lg bg-zinc-950 border border-emerald-500/40 flex items-center gap-2.5 text-xs text-emerald-400">
+        <div className="p-3.5 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center gap-2.5 text-xs text-emerald-800 font-medium">
           <CheckCircle size={16} />
           <span>Configuration updated in the active AI computer vision pipeline in real time.</span>
         </div>
@@ -122,10 +122,10 @@ export default function Settings() {
         {/* Detection Sliders */}
         <div className="pro-card rounded-xl p-5 space-y-5">
           <div className="flex items-center gap-2">
-            <Sliders size={18} className="text-zinc-400" />
-            <h3 className="font-semibold text-sm text-white">Confidence Gate Thresholds</h3>
+            <Sliders size={18} className="text-zinc-600" />
+            <h3 className="font-bold text-sm text-zinc-950">Confidence Gate Thresholds</h3>
           </div>
-          <p className="text-xs text-zinc-400">
+          <p className="text-xs text-zinc-500">
             Detections below these thresholds are marked as uncertain or suppressed to prevent false alerts.
           </p>
 
@@ -133,8 +133,8 @@ export default function Settings() {
             {/* Vehicle Threshold */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-white">Vehicle Detection Threshold</span>
-                <span className="font-mono text-white font-semibold">{Math.round(vehicleThresh * 100)}%</span>
+                <span className="font-semibold text-zinc-900">Vehicle Detection Threshold</span>
+                <span className="font-mono text-zinc-950 font-bold">{Math.round(vehicleThresh * 100)}%</span>
               </div>
               <input
                 type="range"
@@ -143,7 +143,7 @@ export default function Settings() {
                 step="0.05"
                 value={vehicleThresh}
                 onChange={(e) => setVehicleThresh(parseFloat(e.target.value))}
-                className="w-full accent-white cursor-pointer"
+                className="w-full accent-zinc-950 cursor-pointer"
               />
               <span className="text-[11px] text-zinc-500 block">Candidate filter for cars, bikes, buses, and trucks.</span>
             </div>
@@ -151,8 +151,8 @@ export default function Settings() {
             {/* Helmet Threshold */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-white">Helmet Safety Threshold</span>
-                <span className="font-mono text-white font-semibold">{Math.round(helmetThresh * 100)}%</span>
+                <span className="font-semibold text-zinc-900">Helmet Safety Threshold</span>
+                <span className="font-mono text-zinc-950 font-bold">{Math.round(helmetThresh * 100)}%</span>
               </div>
               <input
                 type="range"
@@ -161,7 +161,7 @@ export default function Settings() {
                 step="0.05"
                 value={helmetThresh}
                 onChange={(e) => setHelmetThresh(parseFloat(e.target.value))}
-                className="w-full accent-white cursor-pointer"
+                className="w-full accent-zinc-950 cursor-pointer"
               />
               <span className="text-[11px] text-zinc-500 block">Registers infraction when confidence crosses this threshold.</span>
             </div>
@@ -169,8 +169,8 @@ export default function Settings() {
             {/* Plate Threshold */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-white">Number Plate Localization</span>
-                <span className="font-mono text-white font-semibold">{Math.round(plateThresh * 100)}%</span>
+                <span className="font-semibold text-zinc-900">Number Plate Localization</span>
+                <span className="font-mono text-zinc-950 font-bold">{Math.round(plateThresh * 100)}%</span>
               </div>
               <input
                 type="range"
@@ -179,7 +179,7 @@ export default function Settings() {
                 step="0.05"
                 value={plateThresh}
                 onChange={(e) => setPlateThresh(parseFloat(e.target.value))}
-                className="w-full accent-white cursor-pointer"
+                className="w-full accent-zinc-950 cursor-pointer"
               />
               <span className="text-[11px] text-zinc-500 block">Confidence required to crop and isolate license plate region.</span>
             </div>
@@ -187,8 +187,8 @@ export default function Settings() {
             {/* OCR Threshold */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-white">OCR Character Recognition</span>
-                <span className="font-mono text-white font-semibold">{Math.round(ocrThresh * 100)}%</span>
+                <span className="font-semibold text-zinc-900">OCR Character Recognition</span>
+                <span className="font-mono text-zinc-950 font-bold">{Math.round(ocrThresh * 100)}%</span>
               </div>
               <input
                 type="range"
@@ -197,7 +197,7 @@ export default function Settings() {
                 step="0.05"
                 value={ocrThresh}
                 onChange={(e) => setOcrThresh(parseFloat(e.target.value))}
-                className="w-full accent-white cursor-pointer"
+                className="w-full accent-zinc-950 cursor-pointer"
               />
               <span className="text-[11px] text-zinc-500 block">If OCR confidence is below this, plate displays as "Uncertain".</span>
             </div>
@@ -205,8 +205,8 @@ export default function Settings() {
             {/* EV Threshold */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-white">Electric Vehicle (EV) Threshold</span>
-                <span className="font-mono text-white font-semibold">{Math.round(evThresh * 100)}%</span>
+                <span className="font-semibold text-zinc-900">Electric Vehicle (EV) Threshold</span>
+                <span className="font-mono text-zinc-950 font-bold">{Math.round(evThresh * 100)}%</span>
               </div>
               <input
                 type="range"
@@ -215,16 +215,16 @@ export default function Settings() {
                 step="0.05"
                 value={evThresh}
                 onChange={(e) => setEvThresh(parseFloat(e.target.value))}
-                className="w-full accent-white cursor-pointer"
+                className="w-full accent-zinc-950 cursor-pointer"
               />
               <span className="text-[11px] text-zinc-500 block">Strict gating for green plate EV verification.</span>
             </div>
 
             {/* Cooldown */}
-            <div className="space-y-1.5 pt-2 border-t border-zinc-800">
+            <div className="space-y-1.5 pt-2 border-t border-zinc-200">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-white">Violation Cooldown Period</span>
-                <span className="font-mono text-white font-semibold">{cooldownSec}s</span>
+                <span className="font-semibold text-zinc-900">Violation Cooldown Period</span>
+                <span className="font-mono text-zinc-950 font-bold">{cooldownSec}s</span>
               </div>
               <input
                 type="range"
@@ -233,7 +233,7 @@ export default function Settings() {
                 step="10"
                 value={cooldownSec}
                 onChange={(e) => setCooldownSec(parseInt(e.target.value))}
-                className="w-full accent-white cursor-pointer"
+                className="w-full accent-zinc-950 cursor-pointer"
               />
               <span className="text-[11px] text-zinc-500 block">Suppresses duplicate alerts for the same tracked vehicle ID.</span>
             </div>
@@ -244,70 +244,70 @@ export default function Settings() {
         <div className="pro-card rounded-xl p-5 space-y-5 flex flex-col justify-between">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Cpu size={18} className="text-zinc-400" />
-              <h3 className="font-semibold text-sm text-white">Model Architecture</h3>
+              <Cpu size={18} className="text-zinc-600" />
+              <h3 className="font-bold text-sm text-zinc-950">Model Architecture</h3>
             </div>
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-zinc-500">
               Fine-tuned weights in the model directories take precedence over heuristic detectors.
             </p>
 
             <div className="space-y-2.5">
               {/* YOLO Vehicle */}
-              <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-between">
+              <div className="p-3 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-semibold text-white block">Vehicle Detector</span>
+                  <span className="text-xs font-bold text-zinc-950 block">Vehicle Detector</span>
                   <span className="text-[11px] font-mono text-zinc-500">yolov8n.pt</span>
                 </div>
-                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-zinc-900 text-emerald-400 font-medium border border-zinc-800">
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
                   Active
                 </span>
               </div>
 
               {/* Custom Helmet Model */}
-              <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-between">
+              <div className="p-3 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-semibold text-white block">Helmet Classifier</span>
+                  <span className="text-xs font-bold text-zinc-950 block">Helmet Classifier</span>
                   <span className="text-[11px] font-mono text-zinc-500">backend/models/helmet/best.pt</span>
                 </div>
-                <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-medium border ${
+                <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold border ${
                   config?.models?.custom_helmet_model?.loaded
-                    ? 'bg-zinc-900 text-emerald-400 border-zinc-800'
-                    : 'bg-zinc-900 text-zinc-300 border-zinc-800'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-zinc-100 text-zinc-800 border-zinc-300'
                 }`}>
                   {config?.models?.custom_helmet_model?.loaded ? 'Custom Weights' : 'Vision Heuristics Engine'}
                 </span>
               </div>
 
               {/* Custom Plate Model */}
-              <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-between">
+              <div className="p-3 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-semibold text-white block">License Plate Detector</span>
+                  <span className="text-xs font-bold text-zinc-950 block">License Plate Detector</span>
                   <span className="text-[11px] font-mono text-zinc-500">backend/models/plate/best.pt</span>
                 </div>
-                <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-medium border ${
+                <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold border ${
                   config?.models?.custom_plate_model?.loaded
-                    ? 'bg-zinc-900 text-emerald-400 border-zinc-800'
-                    : 'bg-zinc-900 text-zinc-300 border-zinc-800'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-zinc-100 text-zinc-800 border-zinc-300'
                 }`}>
                   {config?.models?.custom_plate_model?.loaded ? 'Custom Weights' : 'Morphological Engine'}
                 </span>
               </div>
 
               {/* Hardware Acceleration */}
-              <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-between">
+              <div className="p-3 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-semibold text-white block">Hardware Device</span>
+                  <span className="text-xs font-bold text-zinc-950 block">Hardware Device</span>
                   <span className="text-[11px] font-mono text-zinc-500">PyTorch {config?.system?.torch_version}</span>
                 </div>
-                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-zinc-900 text-zinc-300 font-medium border border-zinc-800">
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-zinc-100 text-zinc-800 font-semibold border border-zinc-300">
                   {config?.system?.device || 'CPU'}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-lg bg-zinc-950 border border-zinc-800 text-xs text-zinc-400 space-y-1">
-            <span className="font-semibold text-zinc-300 block">Custom YOLO Weights:</span>
+          <div className="p-3.5 rounded-lg bg-zinc-50 border border-zinc-200 text-xs text-zinc-600 space-y-1">
+            <span className="font-bold text-zinc-900 block">Custom YOLO Weights:</span>
             <p className="text-[11px] leading-relaxed">
               Place fine-tuned <code>best.pt</code> into <code>backend/models/helmet/</code> or <code>backend/models/plate/</code> to override the default heuristic pipelines.
             </p>

@@ -11,7 +11,13 @@ import {
   Eye,
   CheckCircle2,
   RefreshCw,
-  Sparkles
+  Sparkles,
+  Globe,
+  Settings as SettingsIcon,
+  Check,
+  X,
+  Wifi,
+  AlertCircle
 } from 'lucide-react';
 import { getNetworkIp } from '../services/api';
 
@@ -24,6 +30,18 @@ export default function MobileCam({ onBackToDashboard }) {
   const [networkInfo, setNetworkInfo] = useState(null);
   const [httpSecurityBlocked, setHttpSecurityBlocked] = useState(false);
   const [snapCount, setSnapCount] = useState(0);
+
+  // Remote 4G / Public Tunnel Connection States
+  const [remoteServerUrl, setRemoteServerUrl] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('server') || params.get('ws') || localStorage.getItem('traffic_remote_server_url') || '';
+  });
+  const [showSettingsDrawer, setShowSettingsDrawer] = useState(false);
+  const [tempServerInput, setTempServerInput] = useState('');
+  const [serverSaveNotice, setServerSaveNotice] = useState('');
+  const [wsConnecting, setWsConnecting] = useState(false);
+  const [wsConnected, setWsConnected] = useState(false);
+
   const [telemetry, setTelemetry] = useState({
     fps: 0,
     inference_ms: 0,
@@ -54,6 +72,32 @@ export default function MobileCam({ onBackToDashboard }) {
   }, []);
 
   const getWsUrl = () => {
+    // 1. If custom remote server URL or tunnel is set (e.g. over 4G/5G)
+    const activeRemote = remoteServerUrl || localStorage.getItem('traffic_remote_server_url');
+    if (activeRemote && activeRemote.trim()) {
+      let clean = activeRemote.trim();
+      if (clean.startsWith('ws://') || clean.startsWith('wss://')) {
+        return clean.endsWith('/ws/live') ? clean : `${clean.replace(/\/$/, '')}/ws/live`;
+      }
+      const isHttps = clean.startsWith('https://');
+      clean = clean.replace(/^https?:\/\//, '').replace(/\/$/, '');
+      return `${isHttps ? 'wss' : 'ws'}://${clean}/ws/live`;
+    }
+
+    // 2. Query parameter fallback
+    const params = new URLSearchParams(window.location.search);
+    const queryServer = params.get('server') || params.get('ws');
+    if (queryServer) {
+      let clean = queryServer.trim();
+      if (clean.startsWith('ws://') || clean.startsWith('wss://')) {
+        return clean.endsWith('/ws/live') ? clean : `${clean.replace(/\/$/, '')}/ws/live`;
+      }
+      const isHttps = clean.startsWith('https://');
+      clean = clean.replace(/^https?:\/\//, '').replace(/\/$/, '');
+      return `${isHttps ? 'wss' : 'ws'}://${clean}/ws/live`;
+    }
+
+    // 3. Fallback to host
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     if (window.location.protocol === 'https:') {
       return `wss://${window.location.host}/ws/live`;
@@ -64,11 +108,27 @@ export default function MobileCam({ onBackToDashboard }) {
     return `ws://${window.location.host}/ws/live`;
   };
 
-  const startPhoneCamera = async () => {
-    if (window.location.protocol === 'http:') {
-      window.location.href = window.location.href.replace('http:', 'https:');
-      return;
+  const handleSaveRemoteServer = (url) => {
+    const cleanUrl = url.trim();
+    if (cleanUrl) {
+      localStorage.setItem('traffic_remote_server_url', cleanUrl);
+      setRemoteServerUrl(cleanUrl);
+    } else {
+      localStorage.removeItem('traffic_remote_server_url');
+      setRemoteServerUrl('');
     }
+    setServerSaveNotice('Server saved! Reconnecting...');
+    setTimeout(() => {
+      setServerSaveNotice('');
+      setShowSettingsDrawer(false);
+    }, 1500);
+
+    if (isStreamingRef.current) {
+      connectWebSocket();
+    }
+  };
+
+  const startPhoneCamera = async () => {
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setHttpSecurityBlocked(true);
@@ -179,11 +239,14 @@ export default function MobileCam({ onBackToDashboard }) {
       } catch (e) {}
     }
 
+    setWsConnecting(true);
     const wsUrl = getWsUrl();
     const socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {
       console.log("[MobileCam] Transmitter connected to AI engine");
+      setWsConnecting(false);
+      setWsConnected(true);
       // Initial handshake informing backend and laptop viewer
       socket.send(JSON.stringify({ action: "camera_started", source: "mobile_phone" }));
 
@@ -232,6 +295,8 @@ export default function MobileCam({ onBackToDashboard }) {
     };
 
     socket.onclose = () => {
+      setWsConnecting(false);
+      setWsConnected(false);
       isWaitingForResponseRef.current = false;
       if (isStreamingRef.current) {
         if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
@@ -244,6 +309,8 @@ export default function MobileCam({ onBackToDashboard }) {
     };
 
     socket.onerror = () => {
+      setWsConnecting(false);
+      setWsConnected(false);
       isWaitingForResponseRef.current = false;
     };
 
@@ -436,6 +503,22 @@ export default function MobileCam({ onBackToDashboard }) {
             </button>
           )}
 
+          {/* Remote / 4G Connection Settings */}
+          <button
+            onClick={() => {
+              setTempServerInput(remoteServerUrl || '');
+              setShowSettingsDrawer(true);
+            }}
+            className={`p-2 rounded-lg border transition-all ${
+              remoteServerUrl
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                : 'bg-zinc-900/90 border-zinc-800 text-zinc-300 hover:text-white'
+            }`}
+            title="Remote / 4G Connection Settings"
+          >
+            <Globe size={15} />
+          </button>
+
           {/* Camera Flip */}
           <button
             onClick={toggleCameraFacing}
@@ -582,6 +665,79 @@ export default function MobileCam({ onBackToDashboard }) {
           <RotateCw size={18} />
         </button>
       </footer>
+
+      {/* Remote 4G / Server Connection Modal */}
+      {showSettingsDrawer && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+          <div className="w-full max-w-md bg-zinc-950 border border-zinc-800 rounded-2xl p-5 space-y-4 shadow-2xl text-left animate-in fade-in slide-in-from-bottom duration-200">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Globe size={18} className="text-white" />
+                <h3 className="font-bold text-sm text-white">Remote & 4G Data Settings</h3>
+              </div>
+              <button
+                onClick={() => setShowSettingsDrawer(false)}
+                className="p-1 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <p className="text-zinc-400 leading-relaxed text-[11px]">
+                To transmit camera feeds from a phone that is <strong>NOT on the same Wi-Fi</strong> (e.g. using 4G/5G mobile data), enter your public server or HTTPS tunnel URL below.
+              </p>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-zinc-300 block">
+                  Public Server / Tunnel URL:
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. https://xyz.loca.lt or https://xyz.trycloudflare.com"
+                  value={tempServerInput}
+                  onChange={(e) => setTempServerInput(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 font-mono"
+                />
+              </div>
+
+              {serverSaveNotice && (
+                <div className="p-2 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-[11px] flex items-center gap-1.5">
+                  <Check size={13} />
+                  <span>{serverSaveNotice}</span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  onClick={() => handleSaveRemoteServer(tempServerInput)}
+                  className="flex-1 py-2 px-3 rounded-lg bg-white hover:bg-zinc-200 text-black font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <Check size={13} />
+                  <span>Save & Connect</span>
+                </button>
+
+                {remoteServerUrl && (
+                  <button
+                    onClick={() => {
+                      setTempServerInput('');
+                      handleSaveRemoteServer('');
+                    }}
+                    className="py-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white font-medium text-xs border border-zinc-800 transition-colors"
+                  >
+                    Reset (LAN)
+                  </button>
+                )}
+              </div>
+
+              <div className="p-2.5 rounded-lg bg-zinc-900/60 border border-zinc-800 text-[10px] text-zinc-500 space-y-1">
+                <span className="font-semibold text-zinc-400 block">Current Target:</span>
+                <span className="font-mono text-zinc-300 break-all block">{getWsUrl()}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

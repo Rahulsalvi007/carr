@@ -109,7 +109,8 @@ def get_network_ip():
                         "name": iface,
                         "ip": a.address,
                         "is_wifi": is_wifi,
-                        "mobile_cam_url": f"https://{a.address}:5173/?tab=mobile-cam"
+                        "mobile_cam_url": f"https://{a.address}:5173/?tab=mobile-cam",
+                        "mobile_cam_http_url": f"http://{a.address}:5173/?tab=mobile-cam"
                     })
         # Sort so Wi-Fi interfaces come first
         all_ips.sort(key=lambda x: 0 if x.get("is_wifi") else 1)
@@ -135,6 +136,7 @@ def get_network_ip():
         "ip": local_ip,
         "mobile_url": f"https://{local_ip}:5173",
         "mobile_cam_url": f"https://{local_ip}:5173/?tab=mobile-cam",
+        "mobile_cam_http_url": f"http://{local_ip}:5173/?tab=mobile-cam",
         "all_ips": all_ips
     }
 

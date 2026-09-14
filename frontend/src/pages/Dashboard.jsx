@@ -61,22 +61,22 @@ export default function Dashboard({ setActiveTab }) {
   const vehicleBreakdown = data?.vehicle_breakdown || [];
   const powerData = data?.power_distribution || [];
 
-  const COLORS = ['#ffffff', '#d4d4d8', '#a1a1aa', '#71717a', '#52525b'];
+  const COLORS = ['#09090b', '#3f3f46', '#71717a', '#a1a1aa', '#d4d4d8'];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-6 animate-in fade-in duration-200 pb-10">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800/60 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 pb-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white m-0">Surveillance Overview</h1>
-          <p className="text-xs text-zinc-400 mt-1">Real-time roadway analytics, vehicle tracking, and infraction monitoring</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-950 m-0">Surveillance Overview</h1>
+          <p className="text-xs text-zinc-500 mt-1">Real-time roadway analytics, vehicle tracking, and infraction monitoring</p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={fetchDashboardData}
             disabled={isLoading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-800 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-zinc-100 text-zinc-700 text-xs font-semibold border border-zinc-200 shadow-xs transition-colors"
           >
             <RefreshCw size={13} className={isLoading ? "animate-spin" : ""} />
             <span>Refresh</span>
@@ -84,9 +84,9 @@ export default function Dashboard({ setActiveTab }) {
 
           <button
             onClick={() => setActiveTab('live')}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white hover:bg-zinc-200 text-black text-xs font-semibold shadow-sm transition-colors"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-black hover:bg-zinc-800 text-white text-xs font-semibold shadow-xs transition-colors"
           >
-            <Radio size={14} className="text-black" />
+            <Radio size={14} className="text-white" />
             <span>Live Surveillance</span>
           </button>
         </div>
@@ -141,14 +141,14 @@ export default function Dashboard({ setActiveTab }) {
       {/* Main Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Hourly Traffic Trend (Area Chart) */}
-        <div className="lg:col-span-2 bg-zinc-900/60 border border-zinc-800 rounded-xl p-5">
+        <div className="lg:col-span-2 bg-white border border-zinc-200 rounded-2xl p-5 shadow-xs">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-semibold text-sm text-white">Traffic Volume by Hour</h3>
-              <p className="text-[11px] text-zinc-400">Total detected vehicles across 24 hours</p>
+              <h3 className="font-bold text-sm text-zinc-950">Traffic Volume by Hour</h3>
+              <p className="text-[11px] text-zinc-500">Total detected vehicles across 24 hours</p>
             </div>
-            <div className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-300 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700/60">
-              <TrendingUp size={12} className="text-zinc-400" />
+            <div className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded-md border border-zinc-200 font-semibold">
+              <TrendingUp size={12} className="text-zinc-600" />
               <span>Real-time</span>
             </div>
           </div>
@@ -159,20 +159,20 @@ export default function Dashboard({ setActiveTab }) {
                 <AreaChart data={hourly} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ffffff" stopOpacity={0.25}/>
-                      <stop offset="95%" stopColor="#ffffff" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#09090b" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#09090b" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="hour" stroke="#71717a" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#71717a" fontSize={11} tickLine={false} />
+                  <XAxis dataKey="hour" stroke="#a1a1aa" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#a1a1aa" fontSize={11} tickLine={false} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '8px', color: '#f4f4f5', fontSize: '12px' }}
+                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e4e4e7', borderRadius: '10px', color: '#09090b', fontSize: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                   />
-                  <Area type="monotone" dataKey="count" stroke="#ffffff" strokeWidth={2} fillOpacity={1} fill="url(#colorCount)" />
+                  <Area type="monotone" dataKey="count" stroke="#09090b" strokeWidth={2} fillOpacity={1} fill="url(#colorCount)" />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex items-center justify-center text-zinc-500 text-xs">
+              <div className="h-full flex items-center justify-center text-zinc-400 text-xs">
                 No hourly records found. Launch live camera or upload media to populate statistics.
               </div>
             )}
@@ -180,10 +180,10 @@ export default function Dashboard({ setActiveTab }) {
         </div>
 
         {/* Vehicle Composition (Donut Chart) */}
-        <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 flex flex-col justify-between">
+        <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
           <div>
-            <h3 className="font-semibold text-sm text-white">Vehicle Class Breakdown</h3>
-            <p className="text-[11px] text-zinc-400">Classified vehicle types</p>
+            <h3 className="font-bold text-sm text-zinc-950">Vehicle Class Breakdown</h3>
+            <p className="text-[11px] text-zinc-500">Classified vehicle types</p>
           </div>
 
           <div className="h-44 w-full my-2">
@@ -204,12 +204,12 @@ export default function Dashboard({ setActiveTab }) {
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '8px', fontSize: '12px' }}
+                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e4e4e7', borderRadius: '10px', fontSize: '12px', color: '#09090b', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                   />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex items-center justify-center text-zinc-500 text-xs text-center px-4">
+              <div className="h-full flex items-center justify-center text-zinc-400 text-xs text-center px-4">
                 Vehicle distribution chart will appear once objects are detected.
               </div>
             )}
@@ -218,9 +218,9 @@ export default function Dashboard({ setActiveTab }) {
           <div className="grid grid-cols-2 gap-2 text-[11px]">
             {vehicleBreakdown.map((item, idx) => (
               <div key={item.name} className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
-                <span className="text-zinc-400">{item.name}:</span>
-                <span className="font-semibold text-white font-mono">{item.value}</span>
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
+                <span className="text-zinc-500">{item.name}:</span>
+                <span className="font-bold text-zinc-950 font-mono">{item.value}</span>
               </div>
             ))}
           </div>
@@ -230,10 +230,10 @@ export default function Dashboard({ setActiveTab }) {
       {/* Bottom Section: Helmet Compliance + Recent Violations */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Helmet Compliance Gauge Card */}
-        <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5">
+        <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-xs">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-sm text-white">Helmet Compliance</h3>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+            <h3 className="font-bold text-sm text-zinc-950">Helmet Compliance</h3>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-700 border border-zinc-200 font-semibold">
               Safety Index
             </span>
           </div>
@@ -245,7 +245,7 @@ export default function Dashboard({ setActiveTab }) {
                   cx="64"
                   cy="64"
                   r="50"
-                  stroke="#27272a"
+                  stroke="#e4e4e7"
                   strokeWidth="10"
                   fill="transparent"
                 />
@@ -253,7 +253,7 @@ export default function Dashboard({ setActiveTab }) {
                   cx="64"
                   cy="64"
                   r="50"
-                  stroke="#ffffff"
+                  stroke="#09090b"
                   strokeWidth="10"
                   strokeDasharray={314.15}
                   strokeDashoffset={314.15 - (314.15 * (summary.helmet_compliance_rate || 100)) / 100}
@@ -263,27 +263,27 @@ export default function Dashboard({ setActiveTab }) {
                 />
               </svg>
               <div className="absolute flex flex-col items-center">
-                <span className="text-2xl font-bold font-mono text-white">{summary.helmet_compliance_rate || 100}%</span>
-                <span className="text-[9px] uppercase font-semibold text-zinc-400">Compliant</span>
+                <span className="text-2xl font-bold font-mono text-zinc-950">{summary.helmet_compliance_rate || 100}%</span>
+                <span className="text-[9px] uppercase font-bold text-zinc-400">Compliant</span>
               </div>
             </div>
 
-            <p className="text-[11px] text-zinc-400 text-center max-w-xs">
+            <p className="text-[11px] text-zinc-500 text-center max-w-xs leading-relaxed">
               Based on rider head region analysis across all tracked two-wheeler detections.
             </p>
           </div>
         </div>
 
         {/* Recent Violations Feed */}
-        <div className="lg:col-span-2 bg-zinc-900/60 border border-zinc-800 rounded-xl p-5">
+        <div className="lg:col-span-2 bg-white border border-zinc-200 rounded-2xl p-5 shadow-xs">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h3 className="font-semibold text-sm text-white">Recent Road Violations</h3>
-              <p className="text-[11px] text-zinc-400">Automatic safety infractions logged by rule engine</p>
+              <h3 className="font-bold text-sm text-zinc-950">Recent Road Violations</h3>
+              <p className="text-[11px] text-zinc-500">Automatic safety infractions logged by rule engine</p>
             </div>
             <button
               onClick={() => setActiveTab('violations')}
-              className="flex items-center gap-1 text-xs text-zinc-300 hover:text-white font-medium"
+              className="flex items-center gap-1 text-xs text-zinc-700 hover:text-black font-semibold transition-colors"
             >
               <span>View All</span>
               <ArrowRight size={13} />
@@ -291,26 +291,26 @@ export default function Dashboard({ setActiveTab }) {
           </div>
 
           {recentViolations.length > 0 ? (
-            <div className="divide-y divide-zinc-800/80">
+            <div className="divide-y divide-zinc-100">
               {recentViolations.map((v) => (
                 <div
                   key={v.id}
                   onClick={() => setSelectedViolation(v)}
-                  className="py-2.5 flex items-center justify-between hover:bg-zinc-800/40 px-2 rounded-lg cursor-pointer transition-colors"
+                  className="py-3 flex items-center justify-between hover:bg-zinc-50 px-2 rounded-xl cursor-pointer transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-1.5 rounded-lg bg-zinc-800 text-zinc-300 border border-zinc-700/50">
+                    <div className="p-2 rounded-xl bg-red-50 text-red-600 border border-red-200">
                       <AlertTriangle size={15} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-xs text-white">{v.violation_type.replace('_', ' ')}</span>
-                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/60">
+                        <span className="font-bold text-xs text-zinc-900">{v.violation_type.replace(/_/g, ' ')}</span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-zinc-100 text-zinc-600 border border-zinc-200 font-semibold">
                           {v.vehicle_type}
                         </span>
                       </div>
-                      <p className="text-[11px] text-zinc-400 mt-0.5">
-                        Plate: <span className="font-mono text-zinc-200 font-semibold">{v.plate_number || 'N/A'}</span> • {Math.round(v.confidence * 100)}% Conf
+                      <p className="text-[11px] text-zinc-500 mt-0.5">
+                        Plate: <span className="font-mono text-zinc-900 font-bold">{v.plate_number || 'N/A'}</span> • {Math.round((v.confidence || 0) * 100)}% Conf
                       </p>
                     </div>
                   </div>
@@ -319,8 +319,8 @@ export default function Dashboard({ setActiveTab }) {
                     <span className="text-[10px] text-zinc-400 font-mono">
                       {v.timestamp ? new Date(v.timestamp).toLocaleTimeString() : ''}
                     </span>
-                    <span className={`text-[10px] px-2 py-0.2 rounded font-mono font-medium border ${
-                      v.status === 'ACTIVE' ? 'bg-red-950/40 text-red-400 border-red-800/40' : 'bg-zinc-800 text-zinc-300 border-zinc-700'
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold border ${
+                      v.status === 'ACTIVE' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-zinc-100 text-zinc-700 border-zinc-200'
                     }`}>
                       {v.status}
                     </span>
@@ -329,8 +329,8 @@ export default function Dashboard({ setActiveTab }) {
               ))}
             </div>
           ) : (
-            <div className="py-10 text-center text-zinc-500 text-xs flex flex-col items-center justify-center">
-              <ShieldAlert size={28} className="text-zinc-600 mb-1.5" />
+            <div className="py-10 text-center text-zinc-400 text-xs flex flex-col items-center justify-center">
+              <ShieldAlert size={28} className="text-zinc-300 mb-1.5" />
               <span>No violations recorded yet. Connect a camera feed to begin automated monitoring.</span>
             </div>
           )}

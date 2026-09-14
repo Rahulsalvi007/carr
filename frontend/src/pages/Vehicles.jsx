@@ -46,8 +46,8 @@ export default function Vehicles() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white m-0">Tracked Vehicles Registry</h1>
-          <p className="text-xs text-zinc-400 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-950 m-0">Tracked Vehicles Registry</h1>
+          <p className="text-xs text-zinc-500 mt-1">
             Database of uniquely tracked vehicles with license plate history and power classification
           </p>
         </div>
@@ -55,7 +55,7 @@ export default function Vehicles() {
         <button
           onClick={fetchVehicles}
           disabled={isLoading}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white text-xs font-medium border border-zinc-800 transition-colors"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-semibold shadow-sm transition-colors"
         >
           <RefreshCw size={13} className={isLoading ? "animate-spin" : ""} />
           <span>Refresh Database</span>
@@ -65,22 +65,22 @@ export default function Vehicles() {
       {/* Filter and Search Bar */}
       <div className="pro-card p-3 rounded-xl flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
           <input
             type="text"
             placeholder="Search by Plate Number, Track ID, or Vehicle Type..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700"
+            className="w-full bg-white border border-zinc-200 rounded-lg pl-9 pr-3 py-2 text-xs text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-all"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter size={15} className="text-zinc-500 hidden sm:block" />
+          <Filter size={15} className="text-zinc-400 hidden sm:block" />
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-300 focus:outline-none focus:border-zinc-700 w-full sm:w-auto"
+            className="bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-800 font-medium focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 w-full sm:w-auto"
           >
             <option value="ALL">All Categories</option>
             <option value="CAR">Cars Only</option>
@@ -94,7 +94,7 @@ export default function Vehicles() {
       <div className="pro-card rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-zinc-950 text-zinc-400 uppercase tracking-wider font-semibold border-b border-zinc-800 text-[11px]">
+            <thead className="bg-zinc-50 text-zinc-600 uppercase tracking-wider font-semibold border-b border-zinc-200 text-[11px]">
               <tr>
                 <th className="px-5 py-3.5">Track ID</th>
                 <th className="px-5 py-3.5">Vehicle Type</th>
@@ -106,68 +106,68 @@ export default function Vehicles() {
                 <th className="px-5 py-3.5">Violations</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/70 text-zinc-300">
+            <tbody className="divide-y divide-zinc-200 text-zinc-800">
               {filteredVehicles.length > 0 ? (
                 filteredVehicles.map((v) => (
-                  <tr key={v.id} className="hover:bg-zinc-900/40 transition-colors">
-                    <td className="px-5 py-3.5 font-mono font-semibold text-white">
+                  <tr key={v.id} className="hover:bg-zinc-50/80 transition-colors">
+                    <td className="px-5 py-3.5 font-mono font-bold text-zinc-950">
                       #{v.track_id || v.id}
                     </td>
 
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
                         {v.vehicle_type.toLowerCase().includes('bike') || v.vehicle_type.toLowerCase().includes('motorcycle') ? (
-                          <Bike size={15} className="text-zinc-300" />
+                          <Bike size={15} className="text-zinc-700" />
                         ) : (
-                          <Car size={15} className="text-zinc-300" />
+                          <Car size={15} className="text-zinc-700" />
                         )}
-                        <span className="font-medium text-white">{v.vehicle_type}</span>
+                        <span className="font-semibold text-zinc-900">{v.vehicle_type}</span>
                       </div>
                     </td>
 
                     <td className="px-5 py-3.5">
                       {v.plate_number ? (
-                        <span className="font-mono px-2 py-0.5 rounded bg-zinc-950 text-white font-semibold border border-zinc-800">
+                        <span className="font-mono px-2 py-0.5 rounded bg-zinc-100 text-zinc-950 font-bold border border-zinc-300">
                           {v.plate_number}
                         </span>
                       ) : (
-                        <span className="text-zinc-500 italic text-[11px]">Not detected</span>
+                        <span className="text-zinc-400 italic text-[11px]">Not detected</span>
                       )}
                     </td>
 
                     <td className="px-5 py-3.5">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
                         v.power_type === 'Electric'
-                          ? 'bg-zinc-900 text-emerald-400 border-zinc-800'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                           : v.power_type === 'Conventional/Fuel'
-                          ? 'bg-zinc-900 text-zinc-300 border-zinc-800'
-                          : 'bg-zinc-900/50 text-zinc-500 border-zinc-800'
+                          ? 'bg-zinc-100 text-zinc-800 border-zinc-200'
+                          : 'bg-zinc-100 text-zinc-500 border-zinc-200'
                       }`}>
                         {v.power_type === 'Electric' && <Zap size={11} />}
                         {v.power_type}
                       </span>
                     </td>
 
-                    <td className="px-5 py-3.5 font-mono text-zinc-400">
+                    <td className="px-5 py-3.5 font-mono text-zinc-700 font-medium">
                       {Math.round(v.confidence * 100)}%
                     </td>
 
-                    <td className="px-5 py-3.5 text-zinc-500 font-mono text-[11px]">
+                    <td className="px-5 py-3.5 text-zinc-600 font-mono text-[11px]">
                       {v.first_seen ? new Date(v.first_seen).toLocaleTimeString() : 'N/A'}
                     </td>
 
-                    <td className="px-5 py-3.5 text-zinc-500 font-mono text-[11px]">
+                    <td className="px-5 py-3.5 text-zinc-600 font-mono text-[11px]">
                       {v.last_seen ? new Date(v.last_seen).toLocaleTimeString() : 'N/A'}
                     </td>
 
                     <td className="px-5 py-3.5">
                       {v.violations_count > 0 ? (
-                        <span className="inline-flex items-center gap-1 text-red-400 font-semibold bg-red-950/20 px-2 py-0.5 rounded border border-red-900/40">
+                        <span className="inline-flex items-center gap-1 text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
                           <AlertTriangle size={11} />
                           <span>{v.violations_count}</span>
                         </span>
                       ) : (
-                        <span className="text-zinc-500 text-[11px]">Clean</span>
+                        <span className="text-zinc-500 font-medium text-[11px]">Clean</span>
                       )}
                     </td>
                   </tr>

@@ -34,7 +34,8 @@ import {
   Cpu,
   Package,
   SlidersHorizontal,
-  Tag
+  Tag,
+  Globe
 } from 'lucide-react';
 import QRCode from 'qrcode';
 import { getNetworkIp } from '../services/api';
@@ -82,6 +83,10 @@ export default function LiveDetection() {
   const [videoDevices, setVideoDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
   const lastFrameTimeRef = useRef(Date.now());
+
+  // Remote 4G / Public Tunnel Connection state
+  const [connectTab, setConnectTab] = useState('wifi'); // 'wifi' or 'remote'
+  const [publicTunnelUrl, setPublicTunnelUrl] = useState(() => localStorage.getItem('traffic_public_tunnel_url') || '');
 
   // General Object AI & Detection Mode states
   const [aiMode, setAiMode] = useState('combined'); // 'combined', 'objects', 'traffic'
@@ -614,6 +619,15 @@ export default function LiveDetection() {
   }, []);
 
   const getEffectiveMobileCamUrl = () => {
+    // 0. Remote 4G / Public Tunnel URL if entered
+    if (connectTab === 'remote' && publicTunnelUrl.trim()) {
+      let clean = publicTunnelUrl.trim().replace(/\/$/, '');
+      if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
+        clean = `https://${clean}`;
+      }
+      return `${clean}/?tab=mobile-cam`;
+    }
+
     // 1. Production / Deployed environment (domain, public IP, cloud service)
     const hostname = window.location.hostname;
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
@@ -736,31 +750,31 @@ export default function LiveDetection() {
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
       {/* Top Source Mode Switcher Bar */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-zinc-900/60 p-3 rounded-xl border border-zinc-800">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 pro-card p-3 rounded-xl shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700/60 text-zinc-200 flex items-center justify-center">
-            <Radio size={16} className={isStreaming ? "text-white" : "text-zinc-500"} />
+          <div className="w-8 h-8 rounded-lg bg-zinc-100 border border-zinc-200 text-zinc-900 flex items-center justify-center">
+            <Radio size={16} className={isStreaming ? "text-zinc-950" : "text-zinc-400"} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-white m-0 tracking-tight">Live Surveillance Feed</h2>
-              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.2 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 text-[10px] font-mono">
+              <h2 className="text-sm font-bold text-zinc-950 m-0 tracking-tight">Live Surveillance Feed</h2>
+              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.2 rounded bg-zinc-100 border border-zinc-200 text-zinc-700 text-[10px] font-mono font-semibold">
                 YOLOv8 + OCR
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400 mt-0.5">Automated detection of vehicles, license plates, and road infractions</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">Automated detection of vehicles, license plates, and road infractions</p>
           </div>
         </div>
 
         {/* Source Switch Buttons & Action Bar */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <div className="bg-zinc-950 p-0.5 rounded-lg border border-zinc-800 flex items-center gap-1">
+          <div className="bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 flex items-center gap-1">
             <button
               onClick={() => switchMode('phone')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
                 streamMode === 'phone'
-                  ? 'bg-white text-black font-semibold shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-zinc-950 text-white shadow-sm'
+                  : 'text-zinc-600 hover:text-zinc-950'
               }`}
             >
               <Smartphone size={13} />
@@ -769,10 +783,10 @@ export default function LiveDetection() {
 
             <button
               onClick={() => switchMode('webcam')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
                 streamMode === 'webcam'
-                  ? 'bg-white text-black font-semibold shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-zinc-950 text-white shadow-sm'
+                  : 'text-zinc-600 hover:text-zinc-950'
               }`}
             >
               <Camera size={13} />
@@ -781,10 +795,10 @@ export default function LiveDetection() {
 
             <button
               onClick={() => switchMode('sim')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
                 streamMode === 'sim'
-                  ? 'bg-white text-black font-semibold shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-zinc-950 text-white shadow-sm'
+                  : 'text-zinc-600 hover:text-zinc-950'
               }`}
             >
               <Radio size={13} />
@@ -800,7 +814,7 @@ export default function LiveDetection() {
                 setSelectedDeviceId(e.target.value);
                 if (isStreaming) startWebcam(e.target.value);
               }}
-              className="bg-zinc-900 text-zinc-200 text-xs border border-zinc-800 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-zinc-500 max-w-[150px] truncate"
+              className="bg-white text-zinc-900 text-xs border border-zinc-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-zinc-900 font-medium max-w-[150px] truncate"
               title="Select Video Input Device"
             >
               {videoDevices.map((d, i) => (
@@ -811,15 +825,15 @@ export default function LiveDetection() {
             </select>
           )}
 
-          <div className="h-5 w-px bg-zinc-800 mx-1 hidden sm:block" />
+          <div className="h-5 w-px bg-zinc-200 mx-1 hidden sm:block" />
 
           {/* Sound Alert Toggle */}
           <button
             onClick={() => setSoundAlerts(!soundAlerts)}
             className={`p-2 rounded-lg border text-xs transition-colors ${
               soundAlerts
-                ? 'bg-zinc-800 text-zinc-200 border-zinc-700'
-                : 'bg-zinc-950 text-zinc-600 border-zinc-800'
+                ? 'bg-zinc-100 text-zinc-900 border-zinc-300 shadow-sm'
+                : 'bg-white text-zinc-400 border-zinc-200'
             }`}
             title={soundAlerts ? "Audio Alerts Enabled" : "Muted"}
           >
@@ -836,8 +850,8 @@ export default function LiveDetection() {
             }}
             className={`p-2 rounded-lg border text-xs font-medium transition-colors flex items-center gap-1.5 ${
               isTheaterMode
-                ? 'bg-zinc-800 text-white border-zinc-600'
-                : 'bg-zinc-950 text-zinc-400 hover:text-white border-zinc-800'
+                ? 'bg-zinc-950 text-white border-zinc-950 shadow-sm'
+                : 'bg-white text-zinc-700 hover:text-zinc-950 border-zinc-200 shadow-sm'
             }`}
             title={isTheaterMode ? "Standard View" : "Cinema View"}
           >
@@ -850,8 +864,8 @@ export default function LiveDetection() {
             onClick={() => setIsSidePanelOpen(!isSidePanelOpen)}
             className={`p-2 rounded-lg border text-xs font-medium transition-colors flex items-center gap-1.5 ${
               !isSidePanelOpen
-                ? 'bg-zinc-800 text-white border-zinc-600'
-                : 'bg-zinc-950 text-zinc-400 hover:text-white border-zinc-800'
+                ? 'bg-zinc-950 text-white border-zinc-950 shadow-sm'
+                : 'bg-white text-zinc-700 hover:text-zinc-950 border-zinc-200 shadow-sm'
             }`}
             title={isSidePanelOpen ? "Expand to Full Width" : "Show Side Panel"}
           >
@@ -862,7 +876,7 @@ export default function LiveDetection() {
           {/* Fullscreen Button */}
           <button
             onClick={toggleFullscreen}
-            className="px-3 py-1.5 rounded-lg bg-white hover:bg-zinc-200 text-black text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
             title={isFullscreen ? "Exit Fullscreen (Esc)" : "Laptop Fullscreen (F)"}
           >
             {isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
@@ -872,7 +886,7 @@ export default function LiveDetection() {
           {isStreaming && (
             <button
               onClick={stopStream}
-              className="p-2 rounded-lg bg-red-950/40 text-red-400 border border-red-800/40 hover:bg-red-900/40 transition-colors text-xs"
+              className="p-2 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition-colors text-xs font-medium"
               title="Stop surveillance stream"
             >
               <CameraOff size={15} />
@@ -882,14 +896,14 @@ export default function LiveDetection() {
       </div>
 
       {/* AI Mode, Category Filters & Real-time Object Search Bar */}
-      <div className="glass-panel p-3 rounded-xl space-y-2.5 shadow-md">
+      <div className="pro-card p-3 rounded-xl space-y-2.5 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* AI Engine Selector */}
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5 shrink-0">
-              <SlidersHorizontal size={13} className="text-zinc-300" /> AI Engine:
+            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5 shrink-0">
+              <SlidersHorizontal size={13} className="text-zinc-600" /> AI Engine:
             </span>
-            <div className="bg-zinc-950 p-0.5 rounded-lg border border-zinc-800 flex items-center gap-1">
+            <div className="bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 flex items-center gap-1">
               <button
                 onClick={() => {
                   setAiMode('combined');
@@ -897,12 +911,12 @@ export default function LiveDetection() {
                 }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                   aiMode === 'combined'
-                    ? 'bg-white text-black shadow-sm'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-zinc-950 text-white shadow-sm'
+                    : 'text-zinc-600 hover:text-zinc-950'
                 }`}
                 title="Dual-Layer AI: 80 COCO Objects + Road Traffic & Plates"
               >
-                <Sparkles size={13} className={aiMode === 'combined' ? 'text-black' : 'text-zinc-400'} />
+                <Sparkles size={13} className={aiMode === 'combined' ? 'text-white' : 'text-zinc-500'} />
                 <span>Dual AI (Combined)</span>
               </button>
 
@@ -913,12 +927,12 @@ export default function LiveDetection() {
                 }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                   aiMode === 'objects'
-                    ? 'bg-white text-black shadow-sm'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-zinc-950 text-white shadow-sm'
+                    : 'text-zinc-600 hover:text-zinc-950'
                 }`}
                 title="General Object Detection (People, Electronics, Animals, etc.)"
               >
-                <Box size={13} className={aiMode === 'objects' ? 'text-black' : 'text-zinc-400'} />
+                <Box size={13} className={aiMode === 'objects' ? 'text-white' : 'text-zinc-500'} />
                 <span>General Objects (80)</span>
               </button>
 
@@ -929,12 +943,12 @@ export default function LiveDetection() {
                 }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                   aiMode === 'traffic'
-                    ? 'bg-white text-black shadow-sm'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-zinc-950 text-white shadow-sm'
+                    : 'text-zinc-600 hover:text-zinc-950'
                 }`}
                 title="Dedicated Road Safety AI (Vehicles, Helmets, Plates)"
               >
-                <Car size={13} className={aiMode === 'traffic' ? 'text-black' : 'text-zinc-400'} />
+                <Car size={13} className={aiMode === 'traffic' ? 'text-white' : 'text-zinc-500'} />
                 <span>Traffic AI Only</span>
               </button>
             </div>
@@ -951,7 +965,7 @@ export default function LiveDetection() {
                 searchQueryRef.current = e.target.value;
               }}
               placeholder="Search objects in view (person, dog, laptop)..."
-              className="w-full bg-zinc-950/80 border border-zinc-800 text-xs text-zinc-200 placeholder-zinc-500 rounded-lg pl-8 pr-7 py-1.5 focus:outline-none focus:border-zinc-500 transition-colors"
+              className="w-full bg-white border border-zinc-200 text-xs text-zinc-900 placeholder-zinc-400 rounded-lg pl-8 pr-7 py-1.5 focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors"
             />
             {searchQuery && (
               <button
@@ -959,7 +973,7 @@ export default function LiveDetection() {
                   setSearchQuery('');
                   searchQueryRef.current = '';
                 }}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-0.5"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-900 p-0.5"
                 title="Clear search"
               >
                 <X size={12} />
@@ -971,7 +985,7 @@ export default function LiveDetection() {
         {/* Category Filter Pills (When in Combined or Objects Mode) */}
         {aiMode !== 'traffic' && (
           <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 pt-0.5 text-xs">
-            <span className="text-[10px] uppercase font-bold text-zinc-400 shrink-0 mr-1 flex items-center gap-1">
+            <span className="text-[10px] uppercase font-bold text-zinc-500 shrink-0 mr-1 flex items-center gap-1">
               <Tag size={11} /> Filter:
             </span>
             {OBJECT_CATEGORIES.map((cat) => {
@@ -990,15 +1004,15 @@ export default function LiveDetection() {
                   }}
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all shrink-0 ${
                     isSelected
-                      ? 'bg-white text-black font-semibold shadow-sm scale-105'
-                      : 'bg-zinc-900/90 text-zinc-400 hover:text-white hover:bg-zinc-800 border border-zinc-800/80'
+                      ? 'bg-zinc-950 text-white font-semibold shadow-sm scale-105'
+                      : 'bg-zinc-100 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-200 border border-zinc-200'
                   }`}
                 >
                   <Icon size={12} />
                   <span>{cat.label}</span>
                   {count > 0 && (
                     <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
-                      isSelected ? 'bg-black text-white' : 'bg-zinc-800 text-zinc-300'
+                      isSelected ? 'bg-white text-zinc-950 font-bold' : 'bg-zinc-200 text-zinc-800'
                     }`}>
                       {count}
                     </span>
@@ -1210,7 +1224,7 @@ export default function LiveDetection() {
 
           {/* Special Mobile Camera Connect Guide When in Phone Mode & Not Connected Yet */}
           {streamMode === 'phone' && !phoneConnected && (
-            <div className="py-10 px-6 text-center space-y-6 flex flex-col items-center justify-center max-w-2xl">
+            <div className="py-8 px-6 text-center space-y-5 flex flex-col items-center justify-center max-w-2xl">
               <div className="space-y-1.5">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-medium">
                   <Smartphone size={14} className="text-white" />
@@ -1222,7 +1236,33 @@ export default function LiveDetection() {
                 </p>
               </div>
 
-              {/* QR Code Container */}
+              {/* Connection Mode Switcher (Wi-Fi vs 4G / Remote Tunnel) */}
+              <div className="flex items-center p-1 bg-zinc-900 border border-zinc-800 rounded-lg text-xs font-semibold">
+                <button
+                  onClick={() => setConnectTab('wifi')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md transition-all ${
+                    connectTab === 'wifi'
+                      ? 'bg-white text-black shadow-sm'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  <Wifi size={13} />
+                  <span>Same Wi-Fi / Hotspot</span>
+                </button>
+                <button
+                  onClick={() => setConnectTab('remote')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md transition-all ${
+                    connectTab === 'remote'
+                      ? 'bg-white text-black shadow-sm'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  <Globe size={13} />
+                  <span>Anywhere / 4G Data (Remote Tunnel)</span>
+                </button>
+              </div>
+
+              {/* QR Code & Connect Details Container */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6 p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800 shadow-xl w-full backdrop-blur-md">
                 <div className="p-3 bg-white rounded-xl shadow-md shrink-0 border border-zinc-200 flex flex-col items-center justify-center min-w-[180px] min-h-[180px]">
                   {qrCodeDataUrl ? (
@@ -1260,8 +1300,8 @@ export default function LiveDetection() {
                     </span>
                   </div>
 
-                  {/* Network Adapter IP Selector (if multiple exist) */}
-                  {networkInfo?.all_ips && networkInfo.all_ips.length > 1 && (
+                  {/* TAB 1: LOCAL WI-FI ADAPTER SELECTOR */}
+                  {connectTab === 'wifi' && networkInfo?.all_ips && networkInfo.all_ips.length > 1 && (
                     <div className="space-y-1">
                       <label className="text-[10px] font-medium text-zinc-400 flex items-center gap-1">
                         <Wifi size={11} className="text-zinc-300" /> Select Network Adapter / Wi-Fi:
@@ -1280,7 +1320,29 @@ export default function LiveDetection() {
                     </div>
                   )}
 
-                  {/* Option 1: Mobile Browser Link */}
+                  {/* TAB 2: REMOTE / 4G DATA PUBLIC TUNNEL INPUT */}
+                  {connectTab === 'remote' && (
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-semibold text-zinc-300 flex items-center gap-1">
+                        <Globe size={11} className="text-emerald-400" /> Enter Public / Tunnel URL:
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. https://xyz.loca.lt or https://xyz.trycloudflare.com"
+                        value={publicTunnelUrl}
+                        onChange={(e) => {
+                          setPublicTunnelUrl(e.target.value);
+                          localStorage.setItem('traffic_public_tunnel_url', e.target.value);
+                        }}
+                        className="w-full bg-zinc-950 border border-zinc-800 text-xs text-zinc-200 placeholder-zinc-500 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-zinc-600 font-mono"
+                      />
+                      <p className="text-[10px] text-zinc-500 leading-tight">
+                        Run in terminal: <code className="text-zinc-300 bg-zinc-950 px-1 py-0.5 rounded">npx localtunnel --port 5173</code>
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Mobile Browser Link */}
                   <div className="space-y-1">
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1">
                       <ExternalLink size={12} /> Mobile Link:
@@ -1316,13 +1378,13 @@ export default function LiveDetection() {
                 </div>
                 <ol className="text-[11px] text-zinc-400 space-y-1.5 pl-4 list-decimal">
                   <li>
-                    <strong className="text-zinc-200">Same Wi-Fi / Hotspot:</strong> Mobile phone and laptop must be connected to the same Wi-Fi network or phone Hotspot.
+                    <strong className="text-zinc-200">Wi-Fi or 4G:</strong> For local Wi-Fi, ensure both are on the same Wi-Fi/Hotspot. For 4G mobile data, switch to the <em>Anywhere / 4G Data</em> tab above.
                   </li>
                   <li>
-                    <strong className="text-zinc-200">Certificate / Security Prompt:</strong> If the mobile browser displays "Your connection is not private", tap <span className="text-white font-medium">"Advanced"</span> and select <span className="text-white font-medium">"Proceed to {selectedIp || '...' } (unsafe)"</span>.
+                    <strong className="text-zinc-200">Security Prompt:</strong> If the mobile browser displays "Your connection is not private", tap <span className="text-white font-medium">"Advanced"</span> and select <span className="text-white font-medium">"Proceed (unsafe)"</span>.
                   </li>
                   <li>
-                    <strong className="text-zinc-200">Camera Permission:</strong> When prompted by your mobile browser, select <span className="text-emerald-400 font-medium">Allow</span> to start transmitting video.
+                    <strong className="text-zinc-200">Camera Permission:</strong> Tap <span className="text-emerald-400 font-medium">Allow</span> when prompted by your phone browser.
                   </li>
                 </ol>
               </div>
@@ -1466,18 +1528,18 @@ export default function LiveDetection() {
 
         {/* Real-time Detections Side Panel (Collapsible, Dual Tabs: Objects & Traffic) */}
         {isSidePanelOpen && !isFullscreen && (
-          <div className="rounded-xl glass-panel p-4 flex flex-col justify-between space-y-3 shadow-lg transition-all duration-300">
+          <div className="rounded-xl pro-card p-4 flex flex-col justify-between space-y-3 shadow-sm transition-all duration-300">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
-                  <h3 className="font-bold text-sm text-white tracking-tight">Active Surveillance</h3>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800/90 text-zinc-300 font-mono border border-zinc-700">
+                  <h3 className="font-bold text-sm text-zinc-950 tracking-tight">Active Surveillance</h3>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-700 font-mono font-semibold border border-zinc-200">
                     {aiMode === 'objects' ? `${activeObjects.length} objects` : aiMode === 'traffic' ? `${activeVehicles.length} vehicles` : `${activeObjects.length + activeVehicles.length} total`}
                   </span>
                 </div>
                 <button
                   onClick={() => setIsSidePanelOpen(false)}
-                  className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 text-xs transition-colors"
+                  className="p-1 rounded-md text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 text-xs transition-colors"
                   title="Hide side panel"
                 >
                   <PanelRightClose size={14} />
@@ -1485,21 +1547,21 @@ export default function LiveDetection() {
               </div>
 
               {/* Sub-Tab Navigation Header */}
-              <div className="grid grid-cols-2 gap-1 bg-zinc-950/80 p-1 rounded-lg border border-zinc-800/80 mb-3">
+              <div className="grid grid-cols-2 gap-1 bg-zinc-100 p-1 rounded-lg border border-zinc-200 mb-3">
                 <button
                   onClick={() => setSidePanelTab('objects')}
                   className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-semibold transition-all ${
                     (sidePanelTab === 'objects' || (sidePanelTab === 'auto' && aiMode !== 'traffic'))
-                      ? 'bg-white text-black shadow-sm'
-                      : 'text-zinc-400 hover:text-white'
+                      ? 'bg-zinc-950 text-white shadow-sm'
+                      : 'text-zinc-600 hover:text-zinc-950'
                   }`}
                 >
                   <Box size={13} />
                   <span>General Objects</span>
-                  <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                  <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-semibold ${
                     (sidePanelTab === 'objects' || (sidePanelTab === 'auto' && aiMode !== 'traffic'))
-                      ? 'bg-black text-white'
-                      : 'bg-zinc-800 text-zinc-300'
+                      ? 'bg-white text-zinc-950'
+                      : 'bg-zinc-200 text-zinc-700'
                   }`}>
                     {activeObjects.length}
                   </span>
@@ -1509,16 +1571,16 @@ export default function LiveDetection() {
                   onClick={() => setSidePanelTab('traffic')}
                   className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-semibold transition-all ${
                     (sidePanelTab === 'traffic' || (sidePanelTab === 'auto' && aiMode === 'traffic'))
-                      ? 'bg-white text-black shadow-sm'
-                      : 'text-zinc-400 hover:text-white'
+                      ? 'bg-zinc-950 text-white shadow-sm'
+                      : 'text-zinc-600 hover:text-zinc-950'
                   }`}
                 >
                   <Car size={13} />
                   <span>Vehicles & OCR</span>
-                  <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                  <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-semibold ${
                     (sidePanelTab === 'traffic' || (sidePanelTab === 'auto' && aiMode === 'traffic'))
-                      ? 'bg-black text-white'
-                      : 'bg-zinc-800 text-zinc-300'
+                      ? 'bg-white text-zinc-950'
+                      : 'bg-zinc-200 text-zinc-700'
                   }`}>
                     {activeVehicles.length}
                   </span>
@@ -1531,14 +1593,14 @@ export default function LiveDetection() {
               <div className="flex-1 flex flex-col space-y-3 overflow-hidden">
                 {/* Real-time Category Breakdown Chips */}
                 {objectCounts.breakdown && Object.keys(objectCounts.breakdown).length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 p-2 rounded-lg bg-zinc-950/60 border border-zinc-800/80">
+                  <div className="flex flex-wrap gap-1.5 p-2 rounded-lg bg-zinc-50 border border-zinc-200">
                     {Object.entries(objectCounts.breakdown).map(([name, cnt]) => (
                       <span
                         key={name}
-                        className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 font-medium"
+                        className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-white border border-zinc-200 text-zinc-800 font-medium shadow-2xs"
                       >
                         <span>{name}</span>
-                        <span className="font-bold text-white bg-zinc-800 px-1 rounded text-[10px] font-mono">
+                        <span className="font-bold text-zinc-950 bg-zinc-100 px-1 rounded text-[10px] font-mono">
                           ×{cnt}
                         </span>
                       </span>
@@ -1564,7 +1626,7 @@ export default function LiveDetection() {
                     if (filtered.length === 0) {
                       return (
                         <div className="py-14 text-center text-zinc-500 text-xs flex flex-col items-center justify-center space-y-2">
-                          <Box size={28} className="text-zinc-700" />
+                          <Box size={28} className="text-zinc-400" />
                           <span>
                             {searchQuery
                               ? `No objects matching "${searchQuery}"`
@@ -1586,29 +1648,29 @@ export default function LiveDetection() {
                           key={obj.id || idx}
                           className={`p-3 rounded-lg border transition-all ${
                             isMatch
-                              ? 'bg-amber-500/10 border-amber-500/50 shadow-md ring-1 ring-amber-500/40'
-                              : 'bg-zinc-950/80 border-zinc-800/80 hover:border-zinc-700'
+                              ? 'bg-amber-50/50 border-amber-400 shadow-sm ring-1 ring-amber-400/30'
+                              : 'bg-zinc-50 border-zinc-200 hover:bg-zinc-100/70'
                           }`}
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <span className={`w-2 h-2 rounded-full ${badge.dot}`} />
-                              <span className="font-bold text-xs text-white capitalize tracking-wide">
+                              <span className="font-bold text-xs text-zinc-950 capitalize tracking-wide">
                                 {obj.name}
                               </span>
-                              <span className={`text-[10px] px-1.5 py-0.2 rounded border font-medium ${badge.pill}`}>
+                              <span className={`text-[10px] px-1.5 py-0.2 rounded border font-semibold ${badge.pill}`}>
                                 {obj.category}
                               </span>
                             </div>
-                            <span className="text-xs font-mono font-semibold text-emerald-400">
+                            <span className="text-xs font-mono font-bold text-emerald-700">
                               {Math.round(obj.confidence)}%
                             </span>
                           </div>
 
                           {/* Confidence bar */}
-                          <div className="w-full bg-zinc-900 rounded-full h-1 mt-2 overflow-hidden">
+                          <div className="w-full bg-zinc-200 rounded-full h-1 mt-2 overflow-hidden">
                             <div
-                              className="bg-emerald-400 h-1 rounded-full transition-all duration-300"
+                              className="bg-emerald-600 h-1 rounded-full transition-all duration-300"
                               style={{ width: `${Math.min(100, Math.max(5, obj.confidence))}%` }}
                             />
                           </div>
@@ -1638,55 +1700,55 @@ export default function LiveDetection() {
                         key={v.track_id || idx}
                         className={`p-3 rounded-lg border transition-all ${
                           v.has_violation
-                            ? 'bg-red-950/10 border-red-900/50'
+                            ? 'bg-rose-50/70 border-rose-200 shadow-2xs'
                             : v.power_type === 'Electric'
-                            ? 'bg-zinc-950 border-emerald-900/40'
-                            : 'bg-zinc-950 border-zinc-800'
+                            ? 'bg-emerald-50/40 border-emerald-200'
+                            : 'bg-zinc-50 border-zinc-200'
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             {v.vehicle_type === 'Motorcycle' ? (
-                              <Bike size={15} className="text-zinc-300" />
+                              <Bike size={15} className="text-zinc-700" />
                             ) : v.vehicle_type === 'Truck' ? (
-                              <Truck size={15} className="text-zinc-300" />
+                              <Truck size={15} className="text-zinc-700" />
                             ) : v.vehicle_type === 'Bus' ? (
-                              <Bus size={15} className="text-zinc-300" />
+                              <Bus size={15} className="text-zinc-700" />
                             ) : (
-                              <Car size={15} className="text-zinc-300" />
+                              <Car size={15} className="text-zinc-700" />
                             )}
-                            <span className="font-semibold text-xs text-white">
+                            <span className="font-bold text-xs text-zinc-950">
                               #{v.track_id} {v.vehicle_type}
                             </span>
                           </div>
-                          <span className="text-xs font-mono text-zinc-400">
+                          <span className="text-xs font-mono text-zinc-700 font-semibold">
                             {Math.round(v.confidence * 100)}%
                           </span>
                         </div>
 
                         <div className="mt-2.5 grid grid-cols-2 gap-2 text-[11px]">
                           {/* Plate Status */}
-                          <div className="p-2 rounded-md bg-zinc-900 border border-zinc-800/80">
+                          <div className="p-2 rounded-md bg-white border border-zinc-200 shadow-2xs">
                             <span className="text-zinc-500 block text-[10px]">License Plate</span>
-                            <span className="font-mono text-white font-semibold truncate block">
+                            <span className="font-mono text-zinc-950 font-bold truncate block">
                               {v.plate?.detected ? v.plate.plate_number : 'None'}
                             </span>
                           </div>
 
                           {/* Power Type */}
-                          <div className="p-2 rounded-md bg-zinc-900 border border-zinc-800/80">
+                          <div className="p-2 rounded-md bg-white border border-zinc-200 shadow-2xs">
                             <span className="text-zinc-500 block text-[10px]">Propulsion</span>
-                            <span className={`font-semibold ${v.power_type === 'Electric' ? 'text-emerald-400' : 'text-zinc-300'}`}>
+                            <span className={`font-semibold ${v.power_type === 'Electric' ? 'text-emerald-700 font-bold' : 'text-zinc-800'}`}>
                               {v.power_type}
                             </span>
                           </div>
 
                           {/* Helmet Status for two-wheelers */}
                           {v.helmet && v.helmet.rider_detected && (
-                            <div className="col-span-2 p-2 rounded-md bg-zinc-900 border border-zinc-800/80 flex items-center justify-between">
+                            <div className="col-span-2 p-2 rounded-md bg-white border border-zinc-200 shadow-2xs flex items-center justify-between">
                               <span className="text-zinc-500">Helmet Check:</span>
                               <span className={`font-semibold ${
-                                v.helmet.helmet_status === 'YES' ? 'text-emerald-400' : 'text-red-400'
+                                v.helmet.helmet_status === 'YES' ? 'text-emerald-700 font-bold' : 'text-rose-700 font-bold'
                               }`}>
                                 {v.helmet.helmet_status === 'YES' ? 'Verified (Helmet)' : 'No Helmet Violation'}
                               </span>
@@ -1697,7 +1759,7 @@ export default function LiveDetection() {
                     ))
                   ) : (
                     <div className="py-14 text-center text-zinc-500 text-xs flex flex-col items-center justify-center space-y-2">
-                      <Layers size={28} className="text-zinc-700" />
+                      <Layers size={28} className="text-zinc-400" />
                       <span>No vehicles currently inside surveillance perimeter.</span>
                     </div>
                   )}
@@ -1706,18 +1768,18 @@ export default function LiveDetection() {
             )}
 
             {/* Quick Status Legend */}
-            <div className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800 text-[11px] space-y-1 text-zinc-400">
+            <div className="p-2.5 rounded-lg bg-zinc-50 border border-zinc-200 text-[11px] space-y-1 text-zinc-600 font-medium">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   <span>Compliant / Verified</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-red-400" />
+                  <span className="w-2 h-2 rounded-full bg-rose-500" />
                   <span>Violation</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-400" />
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
                   <span>People</span>
                 </div>
               </div>
